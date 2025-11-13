@@ -2,7 +2,7 @@
   "name": "bbsyncr-app",
   "version": "1.0.0",
   "private": true,
-  "description": "Real Estate Document Management - Monorepo",
+  "description": "bbsyncr-monorepo",
   "workspaces": [
     "packages/mobile",
     "packages/web",
