@@ -356,7 +356,7 @@ if (formData.documentType === 'Exclusive Buyer Broker Agreement') {
                 </select>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Property Address *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Buyer Address *</label>
                 <textarea
                   name="address"
                   value={formData.address}

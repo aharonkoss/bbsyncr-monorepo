@@ -36,7 +36,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-white p-4 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         {/* Logo Section */}
         <div className="text-center">
@@ -63,7 +63,7 @@ export default function LoginPage() {
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-white rounded-xl shadow-lg p-8">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-gradient-to-br from-white to-gray-50 p-4 rounded-xl shadow-lg p-8">
           {/* Email Input */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
