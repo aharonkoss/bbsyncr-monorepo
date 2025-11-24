@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { api, tokenManager } from '@/lib/api';
 import { Client } from '@my-real-estate-app/shared';
+import { PaperAirplaneIcon } from '@heroicons/react/24/outline'
 
 export default function ClientsPage() {
   const router = useRouter();
@@ -90,7 +91,19 @@ export default function ClientsPage() {
       alert('Failed to download PDF');
     }
   };
-
+  const handleResend = async (clientId: string) => {
+    setLoading(true);
+    try {
+      console.log(`Resending document for client: ${clientId}`);
+      const response = await api.resendDocument(clientId); // This is a GET request under the hood
+      // Optionally check response status/content here:
+      alert(`Agreement email resent! ${response.message || ''}`);
+    } catch (error) {
+      console.log(`Failed to resend agreement. Please try again.${JSON.stringify(error)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
   // Start editing
   const handleEditClick = (client: Client) => {
     setEditingId(client.id);
@@ -521,7 +534,15 @@ export default function ClientsPage() {
                     </div>
 
                     {/* View Mode Buttons */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
+                     <button
+                        title="Resend Agreement"
+                        onClick={() => handleResend(client.id)}
+                        className="rounded-full p-2 bg-blue-50 hover:bg-blue-100 border border-blue-300"
+                        disabled={loading}
+                      >
+                        <PaperAirplaneIcon className="w-5 h-5 text-blue-600" />
+                      </button> 
                     <button
                         onClick={() => handleDownloadPdf(client.id, client.customerName)}
                         title="Download PDF"

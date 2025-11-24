@@ -62,7 +62,7 @@ export const api = {
   resetPassword: (data) => apiClient.post('/auth/reset-password', data),
   createClient: (data) => apiClient.post('/clients', data),
   getClients: () => apiClient.get('/clients'),
-  resendDocument: (clientId) => apiClient.post(`/clients/${clientId}/resend`),
+  resendDocument: async (clientId) => apiClient.get(`/clients/${clientId}/resend`),
     downloadClientPDF: async (clientId) => {
     try {
       console.log(`⬇️ Starting PDF download for client ID: ${clientId}`);

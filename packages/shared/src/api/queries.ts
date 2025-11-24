@@ -116,5 +116,10 @@ export class ApiClient {
     const blob = await this.getClientPdf(clientId);
     return URL.createObjectURL(blob);
   }
-  
+
+  async resendDocument(clientId: string): Promise<any> {
+    const response = await this.httpClient.get(`/api/clients/${clientId}/resend`);
+    return response.data;
+  }
+
 }
