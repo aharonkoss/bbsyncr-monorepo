@@ -15,7 +15,7 @@ export default function ClientsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Client> | null>(null);
   const [editError, setEditError] = useState('');
-
+  const [feedback, setFeedback] = useState('');
   useEffect(() => {
     const token = tokenManager.getToken();
     if (!token) {
@@ -50,6 +50,7 @@ export default function ClientsPage() {
 
     // In fetchClients, transform the response:
     const fetchClients = async () => {
+    setFeedback('Loading clients...');
     setLoading(true);
     try {
         const data = await api.getClients();
@@ -65,6 +66,7 @@ export default function ClientsPage() {
         router.push('/login');
         }
     } finally {
+        setTimeout(() => setFeedback(''), 3500);
         setLoading(false);
     }
     };
@@ -92,15 +94,16 @@ export default function ClientsPage() {
     }
   };
   const handleResend = async (clientId: string) => {
+    setFeedback('....Please wait, resending email...');
     setLoading(true);
     try {
       console.log(`Resending document for client: ${clientId}`);
       const response = await api.resendDocument(clientId); // This is a GET request under the hood
       // Optionally check response status/content here:
-      alert(`Agreement email resent! ${response.message || ''}`);
     } catch (error) {
       console.log(`Failed to resend agreement. Please try again.${JSON.stringify(error)}`);
     } finally {
+      setTimeout(() => setFeedback(''), 3500);
       setLoading(false);
     }
   };
@@ -185,7 +188,7 @@ export default function ClientsPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading clients...</p>
+          <p className="mt-4 text-gray-600">{feedback}</p>
         </div>
       </div>
     );
