@@ -2,682 +2,633 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { api, tokenManager } from '@/lib/api';
+import SignatureCanvas from 'react-signature-canvas';
 import { loadStripe } from '@stripe/stripe-js';
+import TermsModal from './TermsModal'; // Import the new modal component
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function RegisterPage() {
   const router = useRouter();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  const [step, setStep] = useState<'form' | 'signature' | 'payment' | 'success'>('form');
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual' | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [hasSignature, setHasSignature] = useState(false);
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [userId, setUserId] = useState(null);
+  const signatureRef = useRef<SignatureCanvas>(null);
 
-  const [formData, setFormData] = useState({
-    realtorName: '',
-    realtorCompany: '',
-    realtorPhone: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    address: "",
-    city: "",
-    state: "",
-    zip: ""
-  });
+  // Form state
+  const [realtorName, setRealtorName] = useState('');
+  const [realtorCompany, setRealtorCompany] = useState('');
+  const [realtorPhone, setRealtorPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [zip, setZip] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  
+  // New state for PDF uploads
+  const [buyerBrokerAgreement, setBuyerBrokerAgreement] = useState<File | null>(null);
+  const [exclusiveEmploymentAgreement, setExclusiveEmploymentAgreement] = useState<File | null>(null);
+  
+  // Terms modal state
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const plans = [
+    { id: 'price_1SQy3CDxWTeumVaCr5YqYYn9', name: 'Monthly Plan', price: '$0.99/month' },
+    { id: 'price_1SQy3qDxWTeumVaCFdu7Zt51', name: 'Annual Plan', price: '$10/year', savings: 'Save $2!' },
+  ];
 
-  // ==================== SIGNATURE FUNCTIONS ====================
-
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current) return;
-    
-    const rect = canvasRef.current.getBoundingClientRect();
-    
-    let x: number, y: number;
-    if ('touches' in e) {
-      const touch = e.touches[0];
-      x = touch.clientX - rect.left;
-      y = touch.clientY - rect.top;
-    } else {
-      x = e.clientX - rect.left;
-      y = e.clientY - rect.top;
+  // File validation
+  const validatePDFFile = (file: File): string | null => {
+    // Check if file is PDF
+    if (file.type !== 'application/pdf') {
+      return 'File must be a PDF';
     }
     
-    const ctx = canvasRef.current.getContext('2d');
-    if (ctx) {
-      ctx.strokeStyle = '#000000';
-      ctx.fillStyle = '#000000';
-      ctx.lineWidth = 3;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.globalAlpha = 1.0;
-      
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      setIsDrawing(true);
+    // Check file size (10MB = 10485760 bytes)
+    if (file.size > 10485760) {
+      return 'File size must be less than 10MB';
     }
     
-    e.preventDefault();
+    return null;
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !canvasRef.current) return;
-    
-    const rect = canvasRef.current.getBoundingClientRect();
-    
-    let x: number, y: number;
-    if ('touches' in e) {
-      const touch = e.touches[0];
-      x = touch.clientX - rect.left;
-      y = touch.clientY - rect.top;
-    } else {
-      x = e.clientX - rect.left;
-      y = e.clientY - rect.top;
-    }
-    
-    const ctx = canvasRef.current.getContext('2d');
-    if (ctx) {
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 3;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.globalAlpha = 1.0;
-      
-      ctx.lineTo(x, y);
-      ctx.stroke();
-      setHasSignature(true);
-    }
-    
-    e.preventDefault();
-  };
-
-  const stopDrawing = () => {
-    setIsDrawing(false);
-  };
-
-  const clearSignature = () => {
-    if (canvasRef.current) {
-      const ctx = canvasRef.current.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+  const handleBuyerBrokerAgreementChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const error = validatePDFFile(file);
+      if (error) {
+        setError(error);
+        e.target.value = ''; // Reset input
+        return;
       }
+      setBuyerBrokerAgreement(file);
+      setError('');
     }
-    setHasSignature(false);
   };
 
-  const getSignatureImage = (): string | undefined => {
-    if (!hasSignature || !canvasRef.current) return undefined;
-    
-    const originalCanvas = canvasRef.current;
-    const smallCanvas = document.createElement('canvas');
-    smallCanvas.width = Math.floor(originalCanvas.width * 0.5);
-    smallCanvas.height = Math.floor(originalCanvas.height * 0.5);
-    
-    const ctx = smallCanvas.getContext('2d');
-    if (ctx) {
-      ctx.drawImage(originalCanvas, 0, 0, smallCanvas.width, smallCanvas.height);
+  const handleExclusiveEmploymentAgreementChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const error = validatePDFFile(file);
+      if (error) {
+        setError(error);
+        e.target.value = ''; // Reset input
+        return;
+      }
+      setExclusiveEmploymentAgreement(file);
+      setError('');
     }
-    
-    const compressedImage = smallCanvas.toDataURL('image/png');
-    return compressedImage;
   };
 
-  // ==================== VALIDATION FUNCTIONS ====================
+  const handleTermsAgree = () => {
+    setAgreedToTerms(true);
+  };
 
-  const validateForm = (): boolean => {
-    if (!formData.realtorName.trim()) {
-      setError('Full name is required');
-      return false;
-    }
-    if (!formData.realtorCompany.trim()) {
-      setError('Company name is required');
-      return false;
-    }
-    if (!formData.realtorPhone.trim()) {
-      setError('Phone number is required');
-      return false;
-    }
-    if (!formData.address.trim()) {
-      setError('Firm Address is required');
-      return false;
-    }
-    if (!formData.city.trim()) {
-      setError('Firm City is required');
-      return false;
-    }
-    if (!formData.state.trim()) {
-      setError('Firm State is required');
-      return false;
-    }
-    if (!formData.zip.trim()) {
-      setError('Firm Zip Code is required');
-      return false;
-    }
-    const phoneRegex = /^[\d\-\(\)\s]+$/;
-    if (!phoneRegex.test(formData.realtorPhone)) {
-      setError('Invalid phone format');
-      return false;
+  const handleStep1Submit = () => {
+    setError('');
+
+    // Validate all fields
+    if (!realtorName.trim() || !realtorCompany.trim() || !realtorPhone.trim() || !email.trim() || !password || !confirmPassword) {
+      setError('Please fill in all required fields');
+      return;
     }
 
-    if (!formData.email.trim()) {
-      setError('Email is required');
-      return false;
+    // Validate address fields
+    if (!address.trim() || !city.trim() || !state.trim() || !zip.trim()) {
+      setError('Please fill in all address fields');
+      return;
     }
-    
+
+    // Validate PDF uploads
+    if (!buyerBrokerAgreement) {
+      setError('Please upload your Buyer Broker Agreement PDF');
+      return;
+    }
+
+    if (!exclusiveEmploymentAgreement) {
+      setError('Please upload your Exclusive Employment Agreement PDF');
+      return;
+    }
+
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError('Invalid email format');
-      return false;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
     }
 
-    if (!formData.password) {
-      setError('Password is required');
-      return false;
-    }
-    if (formData.password.length < 10) {
-      setError('Password must be at least 10 characters');
-      return false;
+    // Password validation
+    if (password.length < 10) {
+      setError('Password must be at least 10 characters long');
+      return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (password !== confirmPassword) {
       setError('Passwords do not match');
-      return false;
-    }
-
-    if (!agreeToTerms) {
-      setError('You must agree to the terms and conditions');
-      return false;
-    }
-
-    return true;
-  };
-
-  // ==================== FORM HANDLERS ====================
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-    setError('');
-  };
-
-  const handlePlanSelect = (plan: 'monthly' | 'annual') => {
-    setSelectedPlan(plan);
-    setError('');
-  };
-
-  const handleFormSubmit = () => {
-    setError('');
-    if (validateForm()) {
-      setStep('signature');
-    }
-  };
-
-  const handleSignatureSubmit = async () => {
-    setError('');
-    if (!hasSignature) {
-      setError('Signature is required');
       return;
     }
+
+    // Validate plan selection
     if (!selectedPlan) {
-      setError('Please select a plan');
+      setError('Please select a subscription plan');
       return;
     }
 
+    setStep(2);
+  };
+
+  const handleRegisterAndCheckout = async () => {
+    setError('');
     setLoading(true);
 
     try {
-      const signature = getSignatureImage();
-      const priceId = selectedPlan === 'monthly' ? 'price_monthly' : 'price_annual';
+      // Get signature
+      if (!signatureRef.current || signatureRef.current.isEmpty()) {
+        setError('Please provide your signature');
+        setLoading(false);
+        return;
+      }
 
-      const response = await api.register({
-        realtorName: formData.realtorName,
-        realtorCompany: formData.realtorCompany,
-        realtorPhone: formData.realtorPhone,
-        email: formData.email,
-        password: formData.password,
-        agent_signature: signature,
-        priceId: priceId,
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-        zip: formData.zip,
+      if (!agreedToTerms) {
+        setError('Please agree to the BBsynr Terms of Use');
+        setLoading(false);
+        return;
+      }
+
+      const signatureData = signatureRef.current.toDataURL();
+
+      // Create FormData for multipart/form-data
+      const formData = new FormData();
+      formData.append('realtorName', realtorName);
+      formData.append('realtorCompany', realtorCompany);
+      formData.append('realtorPhone', realtorPhone);
+      formData.append('email', email);
+      formData.append('password', password);
+      formData.append('agent_signature', signatureData);
+      formData.append('priceId', selectedPlan!);
+      formData.append('address', address);
+      formData.append('city', city);
+      formData.append('state', state);
+      formData.append('zip', zip);
+      
+      // Append PDF files
+      formData.append('buyer_broker_agreement', buyerBrokerAgreement!);
+      formData.append('exclusive_employment_agreement', exclusiveEmploymentAgreement!);
+
+      // Register user with file uploads
+      const registerResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
+        method: 'POST',
+        body: formData, // Send as FormData
       });
-      console.log('Registration response:', response);
-      const userId = response.user.id; // <-- This is the UUID from Supabase
 
-      // Store the UUID in your state for downstream use (e.g., payment)
-      setUserId(userId);
-      setStep('payment');
+      const registerData = await registerResponse.json();
+      console.log('Checkout response status:', registerData.status); // ADD THIS
+      console.log('Checkout response data:', registerData); // ADD THIS
+      if (!registerResponse.ok) {
+        console.error('Checkout failed with error:', registerData); // ADD THIS
+        throw new Error(registerData.error || 'Registration failed');
+      }
+
+      console.log('User registered:', registerData);
+
+      // Create Stripe checkout session
+      const checkoutResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payments/create-checkout-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: selectedPlan,
+          email: email,
+          userId: registerData.user.id,
+        }),
+      });
+
+      const checkoutData = await checkoutResponse.json();
+      console.log('Checkout response status:', checkoutResponse.status);
+      console.log('Checkout response data:', checkoutData);
+
+      if (!checkoutData.sessionId || !checkoutData.url) {
+        console.error('Checkout failed with error:', checkoutData);
+        throw new Error(checkoutData.error || 'Failed to create checkout session');
+      }
+
+      // Redirect to Stripe Checkout using the URL (new method)
+      window.location.href = checkoutData.url;
+      
     } catch (err: any) {
       console.error('Registration error:', err);
-      setError(err?.response?.data?.error || 'Registration failed');
-    } finally {
+      setError(err.message || 'Registration failed');
       setLoading(false);
     }
   };
 
-  const handlePaymentSuccess = async () => {
-    setStep('success');
-  };
-
-  const handleGoToClients = () => {
-    router.push('/clients');
-  };
-  //  =====================STRIP PAYMENT INTEGRATION====================
-    const [stripePromise] = useState(() => 
-    loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '')
-    );
-
-    // Add this function to handle payment
-    const handlePayment = async () => {
-      setError('');
-      setLoading(true);
-
-      try {
-        const tempUserId = `temp_${Date.now()}`;
-
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payments/create-checkout-session`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId,
-            email: formData.email,
-            plan: selectedPlan,
-          }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to create checkout session');
-        }
-
-        const { url } = await response.json();
-        
-        // Redirect directly to the Stripe-provided checkout URL
-        window.location.href = url;
-
-      } catch (err: any) {
-        console.error('Payment error:', err);
-        setError(err.message || 'Payment failed');
-        setLoading(false);
-      }
-    };
-
-
-
-
-  // ==================== RENDER FUNCTIONS ====================
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <div className="bg-white border-b-4 border-[#0284C7] sticky top-0 z-50">
-        <div className="max-w-2xl mx-auto px-4 flex items-center justify-center" style={{ height: '97px' }}>
-          <Image
-            src="/logo.png"
-            alt="BBSynr Logo"
-            width={240}
-            height={96}
-            className="h-24 w-auto object-contain"
-            priority
-          />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Join BBSynr</h1>
+          <p className="text-gray-600">and start managing real estate documents</p>
         </div>
-      </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        {/* STEP 1: REGISTRATION FORM */}
-        {step === 'form' && (
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h1>
-            <p className="text-gray-600 mb-8">Join BBSynr and start managing real estate documents</p>
-
-            {error && (
-              <div className="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
-                {error}
-              </div>
-            )}
-
-            {/* Form Fields */}
-            <div className="space-y-5 mb-8">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                <input
-                  type="text"
-                  name="realtorName"
-                  value={formData.realtorName}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0284C7] text-gray-900 placeholder-gray-400"
-                  placeholder="John Doe"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
-                <input
-                  type="text"
-                  name="realtorCompany"
-                  value={formData.realtorCompany}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0284C7] text-gray-900 placeholder-gray-400"
-                  placeholder="Your Real Estate Company"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                <input
-                  type="tel"
-                  name="realtorPhone"
-                  value={formData.realtorPhone}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0284C7] text-gray-900 placeholder-gray-400"
-                  placeholder="(602) 555-1234"
-                />
-              </div>
-               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Firm Address</label>
-                <input
-                  type="tel"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0284C7] text-gray-900 placeholder-gray-400"
-                  placeholder="123 Main St"
-                />
-              </div>
-              <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Firm City</label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0284C7] text-gray-900 placeholder-gray-400"
-                    placeholder="Phoenix"
-                  />
-              </div>
-              <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Firm State</label>
-                  <input
-                    type="text"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0284C7] text-gray-900 placeholder-gray-400"
-                    placeholder="Arizona"
-                  />
-              </div>
-              <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Firm Zip Code</label>
-                  <input
-                    type="text"
-                    name="zip"
-                    value={formData.zip}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0284C7] text-gray-900 placeholder-gray-400"
-                    placeholder="99999"
-                  />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0284C7] text-gray-900 placeholder-gray-400"
-                  placeholder="you@example.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0284C7] text-gray-900 placeholder-gray-400"
-                  placeholder="At least 10 characters"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0284C7] text-gray-900 placeholder-gray-400"
-                  placeholder="Confirm your password"
-                />
-              </div>
-            </div>
-
-            {/* Terms */}
-            <div className="mb-8">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={agreeToTerms}
-                  onChange={(e) => setAgreeToTerms(e.target.checked)}
-                  className="w-4 h-4 border border-gray-300 rounded focus:ring-2 focus:ring-[#0284C7]"
-                />
-                <span className="ml-3 text-sm text-gray-600">
-                  I agree to the BBSynr Terms of Service and Privacy Policy
-                </span>
-              </label>
-            </div>
-
-            <button
-              onClick={handleFormSubmit}
-              className="w-full py-3 px-4 bg-[#0284C7] text-white font-semibold rounded-lg hover:bg-[#0369A1] transition-colors"
-            >
-              Next: Add Signature
-            </button>
-
-            <p className="text-center text-sm text-gray-600 mt-6">
-              Already have an account?{' '}
-              <button
-                onClick={() => router.push('/login')}
-                className="text-[#0284C7] hover:underline font-medium"
-              >
-                Sign in
-              </button>
-            </p>
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-800 text-sm">{error}</p>
           </div>
         )}
 
-        {/* STEP 2: SIGNATURE & PLAN */}
-        {step === 'signature' && (
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Agent Signature Required</h2>
-            <p className="text-gray-600 mb-8">
-              Please sign below. Your signature is required for real estate forms and confirms you agree to BBSynr terms.
-            </p>
-
-            {error && (
-              <div className="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
-                {error}
+        {/* Progress Steps */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center space-x-4">
+            <div className={`flex items-center ${step >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+                1
               </div>
-            )}
-
-            {/* Signature Canvas */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Your Signature</label>
-              <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white">
-                <canvas
-                  ref={canvasRef}
-                  width={400}
-                  height={150}
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDrawing}
-                  className="w-full bg-white cursor-crosshair touch-none block"
-                  style={{ touchAction: 'none' }}
-                />
+              <span className="ml-2 font-medium hidden sm:inline">Account Details</span>
+            </div>
+            <div className="w-16 h-1 bg-gray-200"></div>
+            <div className={`flex items-center ${step >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+                2
               </div>
-              {hasSignature && (
+              <span className="ml-2 font-medium hidden sm:inline">Signature & Terms</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Form Card */}
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          {step === 1 && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Account Details</h2>
+
+              {/* Realtor Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={realtorName}
+                    onChange={(e) => setRealtorName(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="John Doe"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Company <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={realtorCompany}
+                    onChange={(e) => setRealtorCompany(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="ABC Realty"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    value={realtorPhone}
+                    onChange={(e) => setRealtorPhone(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="(555) 123-4567"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="john@example.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Password Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Min. 10 characters"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Confirm Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Re-enter password"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Address Fields */}
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Business Address</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Street Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="123 Main Street"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        City <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Los Angeles"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        State <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="CA"
+                        maxLength={2}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ZIP Code <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={zip}
+                        onChange={(e) => setZip(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="90001"
+                        maxLength={5}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* PDF Upload Section */}
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload Agreement Templates</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Please upload your blank agreement forms. These will be used as templates for client documents.
+                </p>
+
+                <div className="space-y-4">
+                  {/* Buyer Broker Agreement Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Buyer Broker Agreement (Non-Exclusive) <span className="text-red-500">*</span>
+                    </label>
+                    <div className="mt-1 flex items-center">
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleBuyerBrokerAgreementChange}
+                        className="block w-full text-sm text-gray-500
+                          file:mr-4 file:py-3 file:px-4
+                          file:rounded-lg file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-blue-50 file:text-blue-700
+                          hover:file:bg-blue-100
+                          cursor-pointer"
+                      />
+                    </div>
+                    {buyerBrokerAgreement && (
+                      <p className="mt-2 text-sm text-green-600">
+                        ✓ {buyerBrokerAgreement.name} ({(buyerBrokerAgreement.size / 1024 / 1024).toFixed(2)} MB)
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-gray-500">PDF only, max 10MB</p>
+                  </div>
+
+                  {/* Exclusive Employment Agreement Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Exclusive Employment Agreement <span className="text-red-500">*</span>
+                    </label>
+                    <div className="mt-1 flex items-center">
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleExclusiveEmploymentAgreementChange}
+                        className="block w-full text-sm text-gray-500
+                          file:mr-4 file:py-3 file:px-4
+                          file:rounded-lg file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-blue-50 file:text-blue-700
+                          hover:file:bg-blue-100
+                          cursor-pointer"
+                      />
+                    </div>
+                    {exclusiveEmploymentAgreement && (
+                      <p className="mt-2 text-sm text-green-600">
+                        ✓ {exclusiveEmploymentAgreement.name} ({(exclusiveEmploymentAgreement.size / 1024 / 1024).toFixed(2)} MB)
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-gray-500">PDF only, max 10MB</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Plan Selection */}
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Your Plan</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {plans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      onClick={() => setSelectedPlan(plan.id)}
+                      className={`relative p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                        selectedPlan === plan.id
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-200 hover:border-blue-300'
+                      }`}
+                    >
+                      {plan.savings && (
+                        <span className="absolute top-2 right-2 bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">
+                          {plan.savings}
+                        </span>
+                      )}
+                      <h4 className="font-semibold text-gray-900 text-lg">{plan.name}</h4>
+                      <p className="text-2xl font-bold text-blue-600 mt-2">{plan.price}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Next Button */}
+              <button
+                onClick={handleStep1Submit}
+                className="w-full py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Continue to Signature
+              </button>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Signature & Terms</h2>
+
+              {/* Signature Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Digital Signature <span className="text-red-500">*</span>
+                </label>
+                <p className="text-sm text-gray-600 mb-4">
+                  Please sign below. Your signature is required for real estate forms and confirms you agree to BBSynr terms.
+                </p>
+                <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
+                  <SignatureCanvas
+                    ref={signatureRef}
+                    canvasProps={{
+                      className: 'w-full h-48 bg-white',
+                    }}
+                  />
+                </div>
                 <button
-                  onClick={clearSignature}
-                  className="mt-3 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
+                  onClick={() => signatureRef.current?.clear()}
+                  className="mt-2 text-sm text-blue-600 hover:text-blue-700"
                 >
                   Clear Signature
                 </button>
+              </div>
+
+              {/* Terms of Use Agreement */}
+              <div className="border-t pt-6">
+                <div className="flex items-start">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="terms"
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      readOnly
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="ml-3 text-sm">
+                    <label htmlFor="terms" className="font-medium text-gray-700">
+                      I agree to the{' '}
+                      <button
+                        type="button"
+                        onClick={() => setShowTermsModal(true)}
+                        className="text-blue-600 hover:text-blue-700 underline font-semibold"
+                      >
+                        BBsynr Terms of Use
+                      </button>
+                      <span className="text-red-500"> *</span>
+                    </label>
+                    <p className="text-gray-500 mt-1">
+                      Click the link above to review and accept our terms
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="flex gap-4 pt-6">
+                <button
+                  onClick={() => setStep(1)}
+                  className="flex-1 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={handleRegisterAndCheckout}
+                  disabled={loading || !agreedToTerms}
+                  className={`flex-1 py-4 font-semibold rounded-lg transition-colors ${
+                    loading || !agreedToTerms
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {loading ? 'Processing...' : 'Complete Registration & Pay'}
+                </button>
+              </div>
+
+              {!agreedToTerms && (
+                <p className="text-sm text-red-600 text-center">
+                  Please agree to the terms to continue
+                </p>
               )}
             </div>
+          )}
+        </div>
 
-            {/* Plan Selection */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-4">Select Your Plan</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button
-                  onClick={() => handlePlanSelect('monthly')}
-                  className={`p-4 rounded-lg border-2 transition-colors ${
-                    selectedPlan === 'monthly'
-                      ? 'border-[#0284C7] bg-blue-50'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  <div className="font-semibold text-gray-900">Monthly</div>
-                  <div className="text-2xl font-bold text-[#0284C7]">$0.99</div>
-                  <div className="text-xs text-gray-500">per month</div>
-                </button>
-
-                <button
-                  onClick={() => handlePlanSelect('annual')}
-                  className={`p-4 rounded-lg border-2 transition-colors ${
-                    selectedPlan === 'annual'
-                      ? 'border-[#0284C7] bg-blue-50'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  <div className="font-semibold text-gray-900">Annual</div>
-                  <div className="text-2xl font-bold text-[#0284C7]">$10</div>
-                  <div className="text-xs text-gray-500">per year (Save 16%)</div>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <button
-                onClick={() => setStep('form')}
-                className="flex-1 py-3 px-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50"
-              >
-                Back
-              </button>
-              <button
-                onClick={handleSignatureSubmit}
-                disabled={loading}
-                className="flex-1 py-3 px-4 bg-[#0284C7] text-white font-semibold rounded-lg hover:bg-[#0369A1] disabled:opacity-50"
-              >
-                {loading ? 'Processing...' : 'Continue to Payment'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: PAYMENT */}
-        {step === 'payment' && (
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Complete Your Payment</h2>
-            
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800 font-medium mb-2">Order Summary</p>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-700">
-                  {selectedPlan === 'monthly' ? 'Monthly Plan' : 'Annual Plan'}
-                </span>
-                <span className="font-semibold text-gray-900">
-                  {selectedPlan === 'monthly' ? '$0.99' : '$10.00'}
-                </span>
-              </div>
-            </div>
-
-            {error && (
-              <div className="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
-                {error}
-              </div>
-            )}
-
-            <p className="text-gray-600 mb-8 text-sm">
-              You will be redirected to Stripe to complete your payment securely.
-            </p>
-
-            <div className="flex gap-4">
-              <button
-                onClick={() => setStep('signature')}
-                className="flex-1 py-3 px-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50"
-              >
-                Back
-              </button>
-              <button
-                onClick={handlePayment}
-                disabled={loading}
-                className="flex-1 py-3 px-4 bg-[#0284C7] text-white font-semibold rounded-lg hover:bg-[#0369A1] disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    Pay {selectedPlan === 'monthly' ? '$0.99' : '$10.00'}
-                  </>
-                )}
-              </button>
-            </div>
-
-            <p className="text-center text-xs text-gray-500 mt-4">
-              💳 Secure payment powered by Stripe (Test Mode)
-            </p>
-          </div>
-        )}
-
-
-
-        {/* STEP 4: SUCCESS */}
-        {step === 'success' && (
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-            <div className="mb-6">
-              <svg className="w-16 h-16 text-green-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome to BBSynr!</h2>
-            <p className="text-gray-600 mb-8">
-              Your account has been created and activated. You're ready to start managing real estate documents.
-            </p>
-            <button
-              onClick={handleGoToClients}
-              className="px-8 py-3 bg-[#0284C7] text-white font-semibold rounded-lg hover:bg-[#0369A1]"
-            >
-              Go to Dashboard
-            </button>
-          </div>
-        )}
+        {/* Login Link */}
+        <p className="text-center mt-6 text-gray-600">
+          Already have an account?{' '}
+          <a href="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
+            Sign in
+          </a>
+        </p>
       </div>
+
+      {/* Terms Modal */}
+      <TermsModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        onAgree={handleTermsAgree}
+      />
     </div>
   );
 }

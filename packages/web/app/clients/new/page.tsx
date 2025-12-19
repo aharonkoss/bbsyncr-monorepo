@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { api, tokenManager } from '@/lib/api';
 import { CreateClientRequest } from '@my-real-estate-app/shared';
+import ClientTermsModal from './ClientTermsModal'; // Add this import
 
 const PROPERTY_OPTIONS = ['Residential', 'Land', 'Commercial', 'Other'];
 const AGREEMENT_OPTIONS = ['Buyer Broker Agreement', 'Exclusive Buyer Broker Agreement'];
@@ -35,6 +36,8 @@ export default function NewClientPage() {
   const [hasInitials, setHasInitials] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showClientTermsModal, setShowClientTermsModal] = useState(false);
+  const [agreedToClientTerms, setAgreedToClientTerms] = useState(false);
 
   // Check authentication
   useEffect(() => {
@@ -214,6 +217,10 @@ if (formData.documentType === 'Exclusive Buyer Broker Agreement') {
     return;
   }
 }
+    if (!agreedToClientTerms) {
+      setError('Client must agree to BBsynr Terms of Use');
+      return;
+    }
 
     if (!hasSignature) {
       setError('Signature is required');
@@ -263,6 +270,9 @@ if (formData.documentType === 'Exclusive Buyer Broker Agreement') {
     } finally {
       setLoading(false);
     }
+  };
+  const handleClientTermsAgree = () => {
+    setAgreedToClientTerms(true);
   };
 
   return (
@@ -522,56 +532,117 @@ if (formData.documentType === 'Exclusive Buyer Broker Agreement') {
             </div>
           </div>
 
-          {/* Signature Section */}
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Signature *</h2>
-            <div className="border-2 border-gray-300 rounded-lg p-4 bg-white">
-              <canvas
-                ref={canvasRef}
-                width={600}
-                height={200}
-                onMouseDown={(e) => startDrawing(e, 'signature')}
-                onMouseMove={(e) => draw(e, 'signature')}
-                onMouseUp={() => stopDrawing('signature')}
-                onMouseLeave={() => stopDrawing('signature')}
-                onTouchStart={(e) => startDrawing(e, 'signature')}
-                onTouchMove={(e) => draw(e, 'signature')}
-                onTouchEnd={() => stopDrawing('signature')}
-                className="border border-gray-300 rounded cursor-crosshair touch-none w-full"
-                style={{ touchAction: 'none' }}
-              />
-              <button
-                type="button"
-                onClick={() => clearCanvas('signature')}
-                className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-              >
-                Clear Signature
-              </button>
-              {hasSignature && (
-                <p className="mt-2 text-sm text-green-600 font-medium">✓ Signature captured</p>
-              )}
-            </div>
-          </div>
+{/* Signature Section */}
+<div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+  <h2 className="text-lg font-semibold text-gray-900 mb-4">Signature *</h2>
+  <canvas
+    ref={canvasRef}
+    width={500}
+    height={150}
+    onMouseDown={(e) => startDrawing(e, 'signature')}
+    onMouseMove={(e) => draw(e, 'signature')}
+    onMouseUp={() => stopDrawing('signature')}
+    onMouseLeave={() => stopDrawing('signature')}
+    onTouchStart={(e) => startDrawing(e, 'signature')}
+    onTouchMove={(e) => draw(e, 'signature')}
+    onTouchEnd={() => stopDrawing('signature')}
+    className="border border-gray-300 rounded cursor-crosshair touch-none w-full"
+    style={{ touchAction: 'none' }}
+  />
+  <button
+    type="button"
+    onClick={() => clearCanvas('signature')}
+    className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+  >
+    Clear Signature
+  </button>
+  {hasSignature && (
+    <p className="mt-2 text-sm text-green-600 font-medium">
+      ✓ Signature captured
+    </p>
+  )}
+</div>
 
-          {/* Form Actions */}
-          <div className="flex gap-4 pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 px-6 py-3 bg-[#0284C7] text-white rounded-lg hover:bg-[#0369A1] font-medium disabled:opacity-50"
-            >
-              {loading ? 'Creating Client...' : 'Create Client'}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
+{/* Client Terms Acknowledgement Section - NEW */}
+<div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+  <h2 className="text-lg font-semibold text-gray-900 mb-4">Terms & Conditions *</h2>
+  <p className="text-sm text-gray-600 mb-4">
+    The client must read and agree to the BBsynr Terms of Use before proceeding.
+  </p>
+  
+  <div className="flex items-start border border-gray-200 rounded-lg p-4 bg-gray-50">
+    <div className="flex items-center h-5">
+      <input
+        id="client-terms"
+        type="checkbox"
+        checked={agreedToClientTerms}
+        readOnly
+        className="w-4 h-4 text-[#0284C7] border-gray-300 rounded focus:ring-[#0284C7]"
+      />
+    </div>
+    <div className="ml-3 text-sm">
+      <label htmlFor="client-terms" className="font-medium text-gray-700">
+        I agree to the{' '}
+        <button
+          type="button"
+          onClick={() => setShowClientTermsModal(true)}
+          className="text-[#0284C7] hover:text-[#0369A1] underline font-semibold"
+        >
+          BBsynr Terms of Use
+        </button>
+        <span className="text-red-500"> *</span>
+      </label>
+      <p className="text-gray-500 mt-1">
+        Click the link above to review and accept our terms
+      </p>
+      {agreedToClientTerms && (
+        <p className="mt-2 text-sm text-green-600 font-medium">
+          ✓ Terms accepted
+        </p>
+      )}
+    </div>
+  </div>
+
+  {!agreedToClientTerms && (
+    <p className="text-sm text-amber-600 mt-3 flex items-center">
+      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+      </svg>
+      Client must agree to terms before submitting
+    </p>
+  )}
+</div>
+
+{/* Form Actions */}
+<div className="flex gap-4">
+  <button
+    type="submit"
+    disabled={loading}
+    className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
+      loading
+        ? 'bg-gray-400 cursor-not-allowed'
+        : 'bg-[#0284C7] hover:bg-[#0369A1] text-white'
+    }`}
+  >
+    {loading ? 'Creating Client...' : 'Create Client'}
+  </button>
+  <button
+    type="button"
+    onClick={() => router.back()}
+    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
+  >
+    Cancel
+  </button>
+</div>
+</form>
+</div>
+
+{/* Client Terms Modal - NEW */}
+<ClientTermsModal
+  isOpen={showClientTermsModal}
+  onClose={() => setShowClientTermsModal(false)}
+  onAgree={handleClientTermsAgree}
+/>
     </div>
   );
 }
