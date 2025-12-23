@@ -35,12 +35,26 @@ export default function RegisterPage() {
   // Terms modal state
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  console.log('Stripe price env vars:', {
+      monthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY,
+      annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_ANNUAL,
+    });
+const plans = [
+  { 
+    id: process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY as string,
+    name: 'Monthly Plan',
+    price: '$0.99/month',
+  },
+  { 
+    id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ANNUAL as string,
+    name: 'Annual Plan',
+    price: '$9.99/year',
+    savings: 'Save $2!',
+  },
+];
 
-  const plans = [
-    { id: 'price_1SQy3CDxWTeumVaCr5YqYYn9', name: 'Monthly Plan', price: '$0.99/month' },
-    { id: 'price_1SQy3qDxWTeumVaCFdu7Zt51', name: 'Annual Plan', price: '$10/year', savings: 'Save $2!' },
-  ];
-
+ console.log('Plans array:', plans);
+  
   // File validation
   const validatePDFFile = (file: File): string | null => {
     // Check if file is PDF
