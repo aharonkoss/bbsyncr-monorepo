@@ -356,7 +356,7 @@ export default function ProfilePage() {
                     type="text"
                     value={realtorName}
                     onChange={(e) => setRealtorName(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -367,7 +367,7 @@ export default function ProfilePage() {
                     type="text"
                     value={realtorCompany}
                     onChange={(e) => setRealtorCompany(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -381,7 +381,7 @@ export default function ProfilePage() {
                     type="tel"
                     value={realtorPhone}
                     onChange={(e) => setRealtorPhone(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -392,7 +392,7 @@ export default function ProfilePage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -409,7 +409,7 @@ export default function ProfilePage() {
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -421,7 +421,7 @@ export default function ProfilePage() {
                     type="text"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -433,7 +433,7 @@ export default function ProfilePage() {
                     maxLength={2}
                     value={stateVal}
                     onChange={(e) => setStateVal(e.target.value.toUpperCase())}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -445,7 +445,7 @@ export default function ProfilePage() {
                     maxLength={10}
                     value={zip}
                     onChange={(e) => setZip(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -578,7 +578,7 @@ export default function ProfilePage() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Min. 10 characters"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -589,7 +589,7 @@ export default function ProfilePage() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
