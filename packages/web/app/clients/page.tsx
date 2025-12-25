@@ -227,7 +227,34 @@ export default function ClientsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
                 </button>
-
+               {/* Profile Button */}
+              <button
+                onClick={() => router.push('/profile')}
+                title="Change Profile"
+                className="p-3 rounded-full bg-[#0284C7] text-white hover:bg-[#0369A1] transition-colors hover:shadow-lg"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  {/* Head */}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"
+                  />
+                  {/* Shoulders / body */}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 20c0-2.21 2.69-4 6-4s6 1.79 6 4"
+                  />
+                </svg>
+              </button>
                 {/* Logout Button */}
                 <button
                 onClick={handleLogout}
