@@ -27,11 +27,12 @@ export default function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentMo
 
     try {
       const response = await apiClient.post('/agents', formData);
+      const data = response.data || response; // Handle both wrapped and unwrapped responses
       
-      if (response.status === 'joined') {
-        toast.success(response.message || 'Agent added successfully!');
-      } else if (response.status === 'pending') {
-        toast.success(response.message || 'Invitation sent successfully!');
+      if (data.status === 'joined') {
+        toast.success(data.message || 'Agent added successfully!');
+      } else if (data.status === 'pending') {
+        toast.success(data.message || 'Invitation sent successfully!');
       }
 
       setFormData({ agent_email: '', agent_name: '', agent_phone: '' });

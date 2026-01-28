@@ -32,7 +32,7 @@ export default function TeamPage() {
   const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   // For global admin
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -69,60 +69,38 @@ export default function TeamPage() {
     }
   };
 
-  const fetchTeamMembers = async (companyId?: string) => {
-    setLoading(true);
-    try {
-      // FIX: Determine company_id correctly
-      let targetCompanyId: string | undefined;
-      
-      if (companyId) {
-        // Explicitly passed (from dropdown or initial load)
-        targetCompanyId = companyId;
-        console.log('Using passed companyId:', companyId);
-      } else if (user?.role === 'company_admin' && user?.company_id) {
-        console.log('Using company admin company_id:', user.company_id);
-        // Company admin uses their own company_id
-        targetCompanyId = user.company_id;
-      } else if (user?.role === 'global_admin') {
-        console.log('Using selected companyId for global admin:', selectedCompanyId);
-        // Global admin must have selected a company
-        targetCompanyId = selectedCompanyId;
-      }
-      
-      if (!targetCompanyId) {
-        console.warn('No company ID available');
+const fetchTeamMembers = async (companyId?: string) => {
+  setLoading(true);
+  try {
+    const params: any = {};
+    
+    if (user?.role === 'global_admin') {
+      if (!selectedCompanyId && !companyId) {
         setTeamMembers([]);
         setLoading(false);
         return;
       }
-
-      console.log('Fetching team members for company:', targetCompanyId);
-
-      // ✅ FIX: Use company_id with underscore
-      const response = await apiClient.get('users', {
-        params: { company_id: targetCompanyId }
-      });
-
-      console.log('API Response:', response);
-
-      const data = response.data || response;
-      
-      if (data?.users && Array.isArray(data.users)) {
-        console.log('✅ Setting team members:', data.users.length);
-        setTeamMembers(data.users);
-      } else {
-        console.error('Unexpected response format:', data);
-        setTeamMembers([]);
-        toast.error('Unexpected response format');
-      }
-    } catch (error: any) {
-      console.error('Error fetching team members:', error);
-      toast.error(error.response?.data?.error || 'Failed to fetch team members');
-      setTeamMembers([]);
-    } finally {
-      setLoading(false);
+      params.company_id = selectedCompanyId || companyId;
+    } else if (companyId) {
+      params.company_id = companyId;
     }
-  };
+
+    const { data } = await apiClient.get('/users', { params });
+    
+    const typedUsers: User[] = data.users.map((u: any) => ({
+      ...u,
+      role: u.role as 'global_admin' | 'company_admin' | 'manager'
+    }));
+    
+    setTeamMembers(typedUsers);
+  } catch (error: any) {
+    toast.error('Failed to fetch team members');
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   const handleCompanyChange = (companyId: string) => {
     setSelectedCompanyId(companyId);
@@ -133,9 +111,16 @@ export default function TeamPage() {
     }
   };
 
-  const handleEdit = (member: User) => {
-    setEditingUser(member);
+const handleEdit = (member: User) => {
+  // Create a properly typed user object
+  const typedUser: User = {
+    ...member,
+    role: member.role as 'global_admin' | 'company_admin' | 'manager'
   };
+  setEditingUser(typedUser);
+  setIsEditModalOpen(true);
+};
+
 
   const handleDeactivate = async (userId: string, isActive: boolean) => {
     if (!confirm(`Are you sure you want to ${isActive ? 'deactivate' : 'activate'} this user?`)) {
@@ -362,19 +347,22 @@ export default function TeamPage() {
       />
 
       {/* Edit Modal */}
-      {editingUser && (
+      {isEditModalOpen && editingUser && (
         <EditUserModal
-          isOpen={!!editingUser}
-          onClose={() => setEditingUser(null)}
-          onSuccess={() => {
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
             setEditingUser(null);
-            if (user?.role === 'global_admin') {
-              fetchTeamMembers(selectedCompanyId);
-            } else if (user?.company_id) {
-              fetchTeamMembers(user.company_id);
-            }
           }}
-          user={editingUser}
+          onSuccess={() => {
+            fetchTeamMembers();
+            setIsEditModalOpen(false);
+            setEditingUser(null);
+          }}
+          user={{
+                ...editingUser,
+                role: editingUser.role as 'global_admin' | 'company_admin' | 'manager'
+              }}
         />
       )}
     </div>

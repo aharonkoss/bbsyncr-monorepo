@@ -1,5 +1,5 @@
 'use client';
-
+import { Analytics } from '@/types';
 import {
   BarChart,
   Bar,
@@ -16,22 +16,7 @@ import {
 
 // ✅ FIXED: Changed to accept data structure from API
 interface AnalyticsChartsProps {
-  data: {
-    agents: Array<{
-      agent_id: string;
-      agent_name: string;
-      agent_email: string;
-      total_contracts: number;
-      buyer_broker_agreements: number;
-      exclusive_buyer_broker_agreements: number; // ✅ FIXED
-    }>;
-    overall: {
-      total_agents: number;
-      total_contracts: number;
-      buyer_broker_agreements: number;
-      exclusive_buyer_broker_agreements: number; // ✅ FIXED
-    };
-  };
+  data: Analytics;
 }
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -43,7 +28,7 @@ export default function AnalyticsCharts({ data }: AnalyticsChartsProps) {
     total_agents: 0,
     total_contracts: 0,
     buyer_broker_agreements: 0,
-    exclusive_buyer_broker_agreements: 0,
+    exclusive_employment_agreements: 0,
   };
 
   // ✅ FIXED: Check if agents array exists before using .slice()
@@ -59,14 +44,14 @@ export default function AnalyticsCharts({ data }: AnalyticsChartsProps) {
   const agentChartData = agents.slice(0, 10).map((agent) => ({
     name: agent.agent_name.split(' ')[0], // First name only for better display
     'Buyer Broker': agent.buyer_broker_agreements,
-    'Exclusive Buyer Broker': agent.exclusive_buyer_broker_agreements, // ✅ FIXED
+    'Exclusive Buyer Broker': agent.exclusive_employment_agreements, // ✅ FIXED
     total: agent.total_contracts,
   }));
 
   // Prepare data for document type pie chart
   const documentTypePieData = [
     { name: 'Buyer Broker Agreements', value: overall.buyer_broker_agreements },
-    { name: 'Exclusive Buyer Broker', value: overall.exclusive_buyer_broker_agreements }, // ✅ FIXED
+    { name: 'Exclusive Buyer Broker', value: overall.exclusive_employment_agreements }, // ✅ FIXED
   ];
 
   return (
@@ -103,7 +88,7 @@ export default function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                 cy="50%"
                 labelLine={false}
                 label={({ name, percent }) =>
-                  `${name}: ${(percent * 100).toFixed(0)}%`
+                  `${name}: ${(percent ?? 0 * 100).toFixed(0)}%`
                 }
                 outerRadius={100}
                 fill="#8884d8"

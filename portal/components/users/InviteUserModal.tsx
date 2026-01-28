@@ -35,7 +35,8 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
     if (isOpen && user?.role === 'global_admin') {
       fetchCompanies();
     } else if (isOpen && user?.company_id) {
-      setFormData(prev => ({ ...prev, company_id: user.company_id }));
+      // Only set if company_id is truthy
+      setFormData(prev => ({ ...prev, company_id: user.company_id || '' }));
     }
   }, [isOpen, user]);
 

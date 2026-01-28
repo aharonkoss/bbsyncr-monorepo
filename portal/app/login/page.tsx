@@ -137,8 +137,8 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 block w-full rounded-md border-0 py-3 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
                 style={{
-                  focusRingColor: branding?.primary_color || '#3b82f6'
-                }}
+                      '--tw-ring-color': branding?.primary_color || '#3b82f6'
+                    } as React.CSSProperties}
               />
             </div>
 
@@ -189,8 +189,8 @@ export default function LoginPage() {
             disabled={loading}
             className="group relative flex w-full justify-center rounded-md px-3 py-3 text-sm font-semibold text-black shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
             style={{
-              backgroundColor: branding?.primary_color || '#3b82f6'
-            }}
+                    '--tw-ring-color': branding?.primary_color || '#3b82f6'
+                  } as React.CSSProperties}
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
