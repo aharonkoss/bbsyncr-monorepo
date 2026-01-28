@@ -63,6 +63,7 @@ export interface Analytics {
     total_contracts: number;
     buyer_broker_agreements: number;
     exclusive_employment_agreements: number;
+    exclusive_buyer_broker_agreements: number; 
   };
   agents: AgentStats[];
   filters: {
@@ -80,6 +81,7 @@ export interface AgentStats {
   total_contracts: number;
   buyer_broker_agreements: number;
   exclusive_employment_agreements: number;
+  exclusive_buyer_broker_agreements: number;
 }
 
 export interface Client {

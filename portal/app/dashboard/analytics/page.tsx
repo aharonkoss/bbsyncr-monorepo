@@ -34,6 +34,13 @@ export default function AnalyticsPage() {
           document_type: documentType,
         },
       });
+             console.log('Sending document_type:', documentType); // Add this line
+        // Add these console logs
+      console.log('=== ANALYTICS API RESPONSE ===');
+      console.log('Full data:', data);
+      console.log('Overall:', data?.overall);
+      console.log('First agent:', data?.agents?.[0]);
+      console.log('=============================');
       setAnalytics(data);
       setRefreshing(false);
     } catch (error) {
@@ -54,7 +61,7 @@ export default function AnalyticsPage() {
       'Email': agent.agent_email,
       'Total Contracts': agent.total_contracts,
       'Buyer Broker Agreements': agent.buyer_broker_agreements,
-      'Exclusive Buyer Broker Agreements': agent.exclusive_employment_agreements, 
+      'Exclusive Buyer Broker Agreements': agent.exclusive_buyer_broker_agreements, 
     }));
 
     exportToCSV(exportData, 'analytics_report');
@@ -164,7 +171,7 @@ export default function AnalyticsPage() {
               Exclusive Buyer Broker {/* ✅ FIXED */}
             </dt>
             <dd className="mt-1 text-3xl font-semibold text-gray-900">
-              {analytics?.overall.exclusive_employment_agreements || 0} {/* ✅ FIXED */}
+              {analytics?.overall.exclusive_buyer_broker_agreements || 0} {/* ✅ FIXED */}
             </dd>
           </div>
         </div>
@@ -213,7 +220,7 @@ export default function AnalyticsPage() {
                           {agent.buyer_broker_agreements}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {agent.exclusive_employment_agreements} {/* ✅ FIXED */}
+                          {agent.exclusive_buyer_broker_agreements} {/* ✅ FIXED */}
                         </td>
                       </tr>
                     ))}

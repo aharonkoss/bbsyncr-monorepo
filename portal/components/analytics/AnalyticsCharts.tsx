@@ -28,7 +28,7 @@ export default function AnalyticsCharts({ data }: AnalyticsChartsProps) {
     total_agents: 0,
     total_contracts: 0,
     buyer_broker_agreements: 0,
-    exclusive_employment_agreements: 0,
+    exclusive_buyer_broker_agreements: 0,
   };
 
   // ✅ FIXED: Check if agents array exists before using .slice()
@@ -44,14 +44,14 @@ export default function AnalyticsCharts({ data }: AnalyticsChartsProps) {
   const agentChartData = agents.slice(0, 10).map((agent) => ({
     name: agent.agent_name.split(' ')[0], // First name only for better display
     'Buyer Broker': agent.buyer_broker_agreements,
-    'Exclusive Buyer Broker': agent.exclusive_employment_agreements, // ✅ FIXED
+    'Exclusive Buyer Broker': agent.exclusive_buyer_broker_agreements, // ✅ FIXED
     total: agent.total_contracts,
   }));
 
   // Prepare data for document type pie chart
   const documentTypePieData = [
     { name: 'Buyer Broker Agreements', value: overall.buyer_broker_agreements },
-    { name: 'Exclusive Buyer Broker', value: overall.exclusive_employment_agreements }, // ✅ FIXED
+    { name: 'Exclusive Buyer Broker', value: overall.exclusive_buyer_broker_agreements }, // ✅ FIXED
   ];
 
   return (

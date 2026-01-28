@@ -201,7 +201,7 @@ export default function DashboardPage() {
                     Exclusive Employment
                   </dt>
                   <dd className="text-3xl font-semibold text-gray-900">
-                    {stats?.exclusive_employment_agreements || 0}
+                    {stats?.exclusive_buyer_broker_agreements || 0}
                   </dd>
                 </dl>
               </div>

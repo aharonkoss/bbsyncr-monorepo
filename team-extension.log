@@ -397,3 +397,15 @@
 2026-01-06T19:46:02.197Z - debug:  [19136] TFVC: tf add -noprompt -?
 2026-01-06T19:46:02.203Z - error:  [19136] spawn EINVAL
 >>>>>>> 1a3a2d0684f51ab39d5d7ac68f6c207158d993b5
+2026-01-28T14:36:44.409Z - info:   [16368] *** FOLDER: c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\bbsynr\my-real-estate-app\packages ***
+2026-01-28T14:36:44.410Z - info:   [16368] AzureReposVSCode/1.161.0 (VSCode 1.108.2; Windows_NT 10.0.26200; Node 22.21.1)
+2026-01-28T14:36:44.411Z - debug:  [16368] Looking for an External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\bbsynr\my-real-estate-app\packages
+2026-01-28T14:36:44.412Z - debug:  [16368] No External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\bbsynr\my-real-estate-app\packages
+2026-01-28T14:36:44.441Z - debug:  [16368] Looking for TFVC repository at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\bbsynr\my-real-estate-app\packages
+2026-01-28T14:36:44.442Z - debug:  [16368] TFVC Creating Tfvc object with localPath='undefined'
+2026-01-28T14:36:44.444Z - debug:  [16368] Using TFS proxy: 
+2026-01-28T14:36:44.444Z - debug:  [16368] TFVC Retrieved from settings; localPath='C:\TEE\TEE-CLC-14.114.0\tf.cmd'
+2026-01-28T14:36:44.447Z - debug:  [16368] TFVC Repository created with repositoryRootFolder='c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\bbsynr\my-real-estate-app\packages'
+2026-01-28T14:36:44.449Z - debug:  [16368] TFVC Repository.CheckVersion
+2026-01-28T14:36:44.451Z - debug:  [16368] TFVC: tf add -noprompt -?
+2026-01-28T14:36:44.454Z - error:  [16368] spawn EINVAL
