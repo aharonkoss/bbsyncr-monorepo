@@ -1,0 +1,17 @@
+{
+  "name": "bbsyncr-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "bbsyncr-monorepo",
+  "workspaces": [
+    "packages/mobile",
+    "packages/web",
+    "packages/shared"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "dev:mobile": "cd packages/mobile && npm run dev",
+    "dev:web": "cd packages/web && npm run dev",
+    "build:web": "cd packages/web && npm run build"
+  }
+}

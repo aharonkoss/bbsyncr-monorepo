@@ -1,0 +1,72 @@
+2025-10-22T16:35:07.547Z - info:   [08972] *** FOLDER: c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean ***
+2025-10-22T16:35:07.549Z - info:   [08972] AzureReposVSCode/1.161.0 (VSCode 1.105.1; Windows_NT 10.0.26200; Node 22.19.0)
+2025-10-22T16:35:07.551Z - debug:  [08972] Looking for an External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-22T16:35:07.551Z - debug:  [08972] No External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-22T16:35:07.556Z - debug:  [08972] Looking for TFVC repository at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-22T16:35:07.556Z - debug:  [08972] TFVC Creating Tfvc object with localPath='undefined'
+2025-10-22T16:35:07.558Z - debug:  [08972] Using TFS proxy: 
+2025-10-22T16:35:07.559Z - debug:  [08972] TFVC Retrieved from settings; localPath='C:\TEE\TEE-CLC-14.114.0\tf.cmd'
+2025-10-22T16:35:07.562Z - debug:  [08972] TFVC Repository created with repositoryRootFolder='c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean'
+2025-10-22T16:35:07.563Z - debug:  [08972] TFVC Repository.CheckVersion
+2025-10-22T16:35:07.565Z - debug:  [08972] TFVC: tf add -noprompt -?
+2025-10-22T16:35:07.569Z - error:  [08972] spawn EINVAL
+2025-10-23T05:17:22.447Z - info:   [09748] *** FOLDER: c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean ***
+2025-10-23T05:17:22.448Z - info:   [09748] AzureReposVSCode/1.161.0 (VSCode 1.105.1; Windows_NT 10.0.26200; Node 22.19.0)
+2025-10-23T05:17:22.449Z - debug:  [09748] Looking for an External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-23T05:17:22.450Z - debug:  [09748] No External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-23T05:17:22.454Z - debug:  [09748] Looking for TFVC repository at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-23T05:17:22.454Z - debug:  [09748] TFVC Creating Tfvc object with localPath='undefined'
+2025-10-23T05:17:22.458Z - debug:  [09748] Using TFS proxy: 
+2025-10-23T05:17:22.459Z - debug:  [09748] TFVC Retrieved from settings; localPath='C:\TEE\TEE-CLC-14.114.0\tf.cmd'
+2025-10-23T05:17:22.462Z - debug:  [09748] TFVC Repository created with repositoryRootFolder='c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean'
+2025-10-23T05:17:22.464Z - debug:  [09748] TFVC Repository.CheckVersion
+2025-10-23T05:17:22.465Z - debug:  [09748] TFVC: tf add -noprompt -?
+2025-10-23T05:17:22.469Z - error:  [09748] spawn EINVAL
+2025-10-26T03:46:44.184Z - info:   [13820] *** FOLDER: c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean ***
+2025-10-26T03:46:44.187Z - info:   [13820] AzureReposVSCode/1.161.0 (VSCode 1.105.1; Windows_NT 10.0.26200; Node 22.19.0)
+2025-10-26T03:46:44.188Z - debug:  [13820] Looking for an External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-26T03:46:44.188Z - debug:  [13820] No External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-26T03:46:44.193Z - debug:  [13820] Looking for TFVC repository at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-26T03:46:44.194Z - debug:  [13820] TFVC Creating Tfvc object with localPath='undefined'
+2025-10-26T03:46:44.198Z - debug:  [13820] Using TFS proxy: 
+2025-10-26T03:46:44.199Z - debug:  [13820] TFVC Retrieved from settings; localPath='C:\TEE\TEE-CLC-14.114.0\tf.cmd'
+2025-10-26T03:46:44.202Z - debug:  [13820] TFVC Repository created with repositoryRootFolder='c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean'
+2025-10-26T03:46:44.204Z - debug:  [13820] TFVC Repository.CheckVersion
+2025-10-26T03:46:44.205Z - debug:  [13820] TFVC: tf add -noprompt -?
+2025-10-26T03:46:44.208Z - error:  [13820] spawn EINVAL
+2025-10-26T14:53:29.029Z - info:   [18092] *** FOLDER: c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean ***
+2025-10-26T14:53:29.031Z - info:   [18092] AzureReposVSCode/1.161.0 (VSCode 1.105.1; Windows_NT 10.0.26200; Node 22.19.0)
+2025-10-26T14:53:29.033Z - debug:  [18092] Looking for an External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-26T14:53:29.034Z - debug:  [18092] No External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-26T14:53:29.040Z - debug:  [18092] Looking for TFVC repository at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-26T14:53:29.041Z - debug:  [18092] TFVC Creating Tfvc object with localPath='undefined'
+2025-10-26T14:53:29.043Z - debug:  [18092] Using TFS proxy: 
+2025-10-26T14:53:29.043Z - debug:  [18092] TFVC Retrieved from settings; localPath='C:\TEE\TEE-CLC-14.114.0\tf.cmd'
+2025-10-26T14:53:29.046Z - debug:  [18092] TFVC Repository created with repositoryRootFolder='c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean'
+2025-10-26T14:53:29.049Z - debug:  [18092] TFVC Repository.CheckVersion
+2025-10-26T14:53:29.050Z - debug:  [18092] TFVC: tf add -noprompt -?
+2025-10-26T14:53:29.054Z - error:  [18092] spawn EINVAL
+2025-10-27T13:07:10.874Z - info:   [02668] *** FOLDER: c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean ***
+2025-10-27T13:07:10.876Z - info:   [02668] AzureReposVSCode/1.161.0 (VSCode 1.105.1; Windows_NT 10.0.26200; Node 22.19.0)
+2025-10-27T13:07:10.877Z - debug:  [02668] Looking for an External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-27T13:07:10.877Z - debug:  [02668] No External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-27T13:07:10.881Z - debug:  [02668] Looking for TFVC repository at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-27T13:07:10.882Z - debug:  [02668] TFVC Creating Tfvc object with localPath='undefined'
+2025-10-27T13:07:10.884Z - debug:  [02668] Using TFS proxy: 
+2025-10-27T13:07:10.885Z - debug:  [02668] TFVC Retrieved from settings; localPath='C:\TEE\TEE-CLC-14.114.0\tf.cmd'
+2025-10-27T13:07:10.889Z - debug:  [02668] TFVC Repository created with repositoryRootFolder='c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean'
+2025-10-27T13:07:10.892Z - debug:  [02668] TFVC Repository.CheckVersion
+2025-10-27T13:07:10.894Z - debug:  [02668] TFVC: tf add -noprompt -?
+2025-10-27T13:07:10.898Z - error:  [02668] spawn EINVAL
+2025-10-27T23:53:32.905Z - info:   [0900] *** FOLDER: c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean ***
+2025-10-27T23:53:32.906Z - info:   [0900] AzureReposVSCode/1.161.0 (VSCode 1.105.1; Windows_NT 10.0.26200; Node 22.19.0)
+2025-10-27T23:53:32.907Z - debug:  [0900] Looking for an External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-27T23:53:32.907Z - debug:  [0900] No External Context at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-27T23:53:32.910Z - debug:  [0900] Looking for TFVC repository at c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean
+2025-10-27T23:53:32.911Z - debug:  [0900] TFVC Creating Tfvc object with localPath='undefined'
+2025-10-27T23:53:32.912Z - debug:  [0900] Using TFS proxy: 
+2025-10-27T23:53:32.912Z - debug:  [0900] TFVC Retrieved from settings; localPath='C:\TEE\TEE-CLC-14.114.0\tf.cmd'
+2025-10-27T23:53:32.915Z - debug:  [0900] TFVC Repository created with repositoryRootFolder='c:\Users\aharo\Kosstech\OneDrive - Strategic Integration Technologies\Authentisign\authen-sign-app-clean'
+2025-10-27T23:53:32.916Z - debug:  [0900] TFVC Repository.CheckVersion
+2025-10-27T23:53:32.917Z - debug:  [0900] TFVC: tf add -noprompt -?
+2025-10-27T23:53:32.920Z - error:  [0900] spawn EINVAL
