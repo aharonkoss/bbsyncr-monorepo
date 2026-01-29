@@ -38,13 +38,13 @@ export default function EditCompanyModal({
     if (company) {
       setFormData({
         company_name: company.company_name,
-        address: company.address,
-        city: company.city,
-        state: company.state,
-        zip: company.zip,
-        primary_color: company.primary_color,
-        secondary_color: company.secondary_color,
-        is_active: company.is_active,
+        address: company.address || '',
+        city: company.city || '',
+        state: company.state || '',
+        zip: company.zip || '',
+        primary_color: company.primary_color || '#3B82F6',
+        secondary_color: company.secondary_color || '#10B981',
+        is_active: company.is_active || false,
       });
       setLogoPreview(company.logo_url || null);
     }

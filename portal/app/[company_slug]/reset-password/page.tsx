@@ -127,7 +127,7 @@ function ResetPasswordForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="block w-full rounded-md border border-gray-300 py-3 px-3 pr-10 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 sm:text-sm"
-                  style={{ focusRing: company?.primary_color }}
+                  style={{borderColor: company?.primary_color}}
                   placeholder="At least 8 characters"
                   minLength={8}
                 />
@@ -159,7 +159,7 @@ function ResetPasswordForm() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="block w-full rounded-md border border-gray-300 py-3 px-3 pr-10 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 sm:text-sm"
-                  style={{ focusRing: company?.primary_color }}
+                  style={{borderColor: company?.primary_color}}
                   placeholder="Re-enter your password"
                   minLength={8}
                 />

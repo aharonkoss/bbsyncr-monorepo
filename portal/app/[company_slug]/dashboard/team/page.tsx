@@ -8,17 +8,7 @@ import toast from 'react-hot-toast';
 import { formatDateTime } from '@/lib/utils/formatters';
 import InviteUserModal from '@/components/users/InviteUserModal';
 import EditUserModal from '@/components/users/EditUserModal';
-
-interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  title?: string;
-  role: string;
-  last_login?: string;
-  is_active: boolean;
-  company_id: string;
-}
+import { User } from '@/types';
 
 interface Company {
   id: string;
@@ -35,13 +25,13 @@ export default function TeamPage() {
   const user = useAuthStore((state) => state.user);
   
   const [loading, setLoading] = useState(true);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [teamMembers, setTeamMembers] = useState<User[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
   
   // Modal states
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<TeamMember | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   // Hydrate Zustand store first
   useEffect(() => {
@@ -103,7 +93,7 @@ const fetchTeamMembers = async () => {
     });
     
     // Filter to only show admins and managers (not agents)
-    const teamOnly = (data.users || data || []).filter((u: TeamMember) => 
+    const teamOnly = (data.users || data || []).filter((u: User) => 
       u.role === 'company_admin' || u.role === 'manager' || u.role === 'global_admin'
     );
     
