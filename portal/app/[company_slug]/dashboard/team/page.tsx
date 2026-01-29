@@ -327,7 +327,6 @@ const fetchTeamMembers = async () => {
         isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
         onSuccess={fetchTeamMembers}
-        companyId={selectedCompanyId || user?.company_id || ''}
       />
 
       {/* Edit User Modal */}
