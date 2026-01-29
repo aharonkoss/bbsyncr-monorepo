@@ -15,16 +15,18 @@ export interface Company {
   id: string;
   company_name: string;
   subdomain: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  logo_url?: string | null;
+  logo_url: string | null;  // Make nullable
+  address: string | null;   // Make nullable
+  city: string | null;      // Make nullable
+  state: string | null;     // Make nullable
+  zip: string | null;       // Make nullable
   primary_color: string;
   secondary_color: string;
   is_active: boolean;
   created_at: string;
+  updated_at: string;       // Add this field
 }
+
 
 export interface Agent {
   id: string;
@@ -94,3 +96,4 @@ export interface Client {
   created_at: string;
   updated_at: string;
 }
+

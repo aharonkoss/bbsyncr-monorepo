@@ -24,9 +24,11 @@ export default function CompaniesPage() {
   useEffect(() => {
     // Only global admins can access this page
     if (user?.role !== 'global_admin') {
-      toast.error('Access denied');
-      router.push('/dashboard');
+      toast.error(`Access denied. Your role: ${JSON.stringify(user?.role)}`);
+      router.push('/admin/dashboard');
       return;
+    } else {
+
     }
     fetchCompanies();
   }, [user, router]);

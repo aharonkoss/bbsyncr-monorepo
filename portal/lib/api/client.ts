@@ -32,7 +32,15 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      
+      // Get company slug from localStorage or URL
+      const companySlug = localStorage.getItem('company_slug');
+      
+      if (companySlug) {
+        window.location.href = `/${companySlug}/login`;
+      } else {
+        window.location.href = '/';
+      }
     }
     return Promise.reject(error);
   }
