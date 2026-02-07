@@ -9,6 +9,7 @@ export const createHttpClient = (
     baseURL: API_CONFIG.baseUrl,
     timeout: API_CONFIG.timeout,
     headers: API_CONFIG.headers,
+    withCredentials: true,
   });
 
   // Request interceptor - add auth token
