@@ -3,7 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { api, tokenManager } from '@/lib/api';
+import {
+  fetchCurrentUser,
+  fetchClients,
+  resendClientDocument,
+  updateClient,
+  deleteClient as deleteClientApi,
+  downloadClientPdf,
+  logout
+} from '@/lib/api';
 import { Client } from '@my-real-estate-app/shared';
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline'
 
@@ -16,97 +24,95 @@ export default function ClientsPage() {
   const [editFormData, setEditFormData] = useState<Partial<Client> | null>(null);
   const [editError, setEditError] = useState('');
   const [feedback, setFeedback] = useState('');
-  useEffect(() => {
-    const token = tokenManager.getToken();
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
-    fetchClients();
-  }, []);
-  
+const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
     // Add this helper function to transform database format to camelCase
     const transformClient = (client: any): Client => ({
-    id: client.id,
-    customerName: client.customer_name || client.customerName,
-    email: client.email,
-    phone: client.phone,
-    address: client.address,
-    documentType: client.document_type || client.documentType,
-    signatureImage: client.signature_image || client.signatureImage,
-    createdAt: client.created_at || client.createdAt,
-    property_description: client.property_description,
-    property_description_other: client.property_description_other,
-    compensation_type: client.compensation_type,
-    compensation_value: client.compensation_value,
-    expiration_date: client.expiration_date,
-    retainer_fee: client.retainer_fee,
-    days_of_execution: client.days_of_execution,
-    buyer_initials: client.buyer_initials,
-    signature_image: client.signature_image,
+      id: client.id,
+      customerName: client.customer_name || client.customerName,
+      email: client.email,
+      phone: client.phone,
+      address: client.address,
+      documentType: client.document_type || client.documentType,
+      signatureImage: client.signature_image || client.signatureImage,
+      createdAt: client.created_at || client.createdAt,
+      property_description: client.property_description,
+      property_description_other: client.property_description_other,
+      compensation_type: client.compensation_type,
+      compensation_value: client.compensation_value,
+      expiration_date: client.expiration_date,
+      retainer_fee: client.retainer_fee,
+      days_of_execution: client.days_of_execution,
+      buyer_initials: client.buyer_initials,
+      signature_image: client.signature_image,
 
-    });
+      });
+useEffect(() => {
+  let cancelled = false;
 
-    // In fetchClients, transform the response:
-    const fetchClients = async () => {
-    setFeedback('Loading clients...');
-    setLoading(true);
+  const load = async () => {
     try {
-        const data = await api.getClients();
-        // Transform each client to camelCase
-        const transformedClients = data.map(transformClient);
-        setClients(transformedClients);
-    } catch (err: any) {
-        console.error('Error fetching clients:', err);
-        setError('Failed to load clients');
-        
-        if (err?.response?.status === 401) {
-        tokenManager.clearAll();
-        router.push('/login');
-        }
-    } finally {
-        setTimeout(() => setFeedback(''), 3500);
+      const me = await fetchCurrentUser();
+      const rawClients = await fetchClients();
+      console.log('Fetched clients:', rawClients);
+      const transformed = rawClients.map(transformClient);  
+      if (!cancelled) {
+        setCurrentUser(me);
+        setClients(transformed);
         setLoading(false);
-    }
-    };
-
-  const handleLogout = () => {
-    tokenManager.clearAll();
-    router.push('/login');
-  };
-
-  const handleDownloadPdf = async (clientId: string, customerName: string) => {
-    try {
-      const pdfUrl = await api.downloadClientPdf(clientId);
-      
-      const link = document.createElement('a');
-      link.href = pdfUrl;
-      link.download = `${customerName}-document.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      URL.revokeObjectURL(pdfUrl);
-    } catch (err) {
-      console.error('Error downloading PDF:', err);
-      alert('Failed to download PDF');
-    }
-  };
-  const handleResend = async (clientId: string) => {
-    setFeedback('....Please wait, resending email...');
-    setLoading(true);
-    try {
-      console.log(`Resending document for client: ${clientId}`);
-      const response = await api.resendDocument(clientId); // This is a GET request under the hood
-      // Optionally check response status/content here:
+      }
     } catch (error) {
-      console.log(`Failed to resend agreement. Please try again.${JSON.stringify(error)}`);
-    } finally {
-      setTimeout(() => setFeedback(''), 3500);
-      setLoading(false);
+      console.log('Error fetching data:', error);
+      if (!cancelled) {
+        setLoading(false);
+        router.replace('/login');
+      }
     }
   };
+
+  load();
+  return () => {
+    cancelled = true;
+  };
+}, [router]);
+
+
+if (loading) {
+  return <div>Loading…</div>;
+}
+  
+
+
+
+const handleLogout = async () => {
+  try {
+    await logout();              // clears HttpOnly cookies on the server
+    } catch (e) {
+      console.error('Logout error', e);
+    } finally {
+      router.push('/login');       // redirect either way
+    }
+};
+
+  // Download PDF
+  const handleDownloadPdf = async (clientId: string, customerName: string) => {
+  try {
+    const pdfUrl = await downloadClientPdf(clientId);
+
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = `${customerName}-document.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(pdfUrl);
+  } catch (err) {
+    console.error('Error downloading PDF:', err);
+    alert('Failed to download PDF');
+  }
+};
+
+  
   // Start editing
   const handleEditClick = (client: Client) => {
     setEditingId(client.id);
@@ -135,53 +141,88 @@ export default function ClientsPage() {
     setEditFormData(null);
     setEditError('');
   };
+  const handleResend = async (clientId: string) => {
+  setFeedback('....Please wait, resending email...');
+  setLoading(true);
 
-    // In handleSaveEdit, transform the response back:
-    const handleSaveEdit = async (clientId: string) => {
-      if (!editFormData) {
-        setEditError('No data to save');
-        return;
-      }
-    
-    try {
-        const responseClient = await api.updateClient(clientId, { 
-          ...editFormData,
-          // Make sure these fields are included:
-            property_description: editFormData.property_description,
-            property_description_other: editFormData.property_description_other,
-            compensation_type: editFormData.compensation_type,
-            compensation_value: editFormData.compensation_value,
-            expiration_date: editFormData.expiration_date,
-            retainer_fee: editFormData.retainer_fee,
-            days_of_execution: editFormData.days_of_execution,
-            buyer_initials: editFormData.buyer_initials,
-            signature_image: editFormData.signature_image,   
-      });
-        const updatedClient = transformClient(responseClient);
-        setClients(clients.map(c => c.id === clientId ? updatedClient : c));
-        setEditingId(null);
-        setEditFormData(null);
-        setEditError('');
-    } catch (err: any) {
-        console.error('Error updating client:', err);
-        setEditError(err?.response?.data?.error || 'Failed to update client');
-    }
+  try {
+    console.log(`Resending document for client: ${clientId}`);
+    await resendClientDocument(clientId);
+  } catch (error) {
+    console.error(
+      `Failed to resend agreement. Please try again.`,
+      error
+    );
+  } finally {
+    setTimeout(() => setFeedback(''), 3500);
+    setLoading(false);
+  }
+};
+
+
+  // In handleSaveEdit, transform the response back:
+const handleSaveEdit = async (clientId: string) => {
+  if (!editFormData) {
+    setEditError('No data to save');
+    return;
+  }
+
+  try {
+    const payload = {
+      customerName: editFormData.customerName?.trim() || '',
+      email: editFormData.email?.trim() || '',
+      phone: editFormData.phone?.trim() || '',
+      address: editFormData.address?.trim() || '',
+      document_type: editFormData.documentType,                    // matches req.body.documenttype
+      property_description: editFormData.property_description,
+      property_description_other: editFormData.property_description_other,
+      compensation_type: editFormData.compensation_type,
+      compensation_value: editFormData.compensation_value,
+      expiration_date: editFormData.expiration_date,
+      buyer_initials: editFormData.buyer_initials,
+      signature_image: editFormData.signature_image,
+      retainer_fee: editFormData.documentType === 'Exclusive Buyer Broker Agreement'
+        ? editFormData.retainer_fee
+        : null,
+      days_of_execution: editFormData.documentType === 'Exclusive Buyer Broker Agreement'
+        ? editFormData.days_of_execution
+        : null,
     };
+
+    const responseClient = await updateClient(clientId, payload);
+
+    const updatedClient = transformClient(responseClient);
+    setClients((prev) => prev.map((c) => (c.id === clientId ? updatedClient : c)));
+    setEditingId(null);
+    setEditFormData(null);
+    setEditError('');
+  } catch (err: any) {
+    console.error('Error updating client:', err);
+    setEditError(err?.response?.data?.error || 'Failed to update client');
+  }
+};
+
+
 
   // Delete client
   const handleDeleteClient = async (clientId: string, customerName: string) => {
-    if (!confirm(`Are you sure you want to delete ${customerName}? This action cannot be undone.`)) {
-      return;
-    }
+  if (
+    !confirm(
+      `Are you sure you want to delete ${customerName}? This action cannot be undone.`
+    )
+  ) {
+    return;
+  }
 
-    try {
-      await api.deleteClient(clientId);
-      setClients(clients.filter(c => c.id !== clientId));
-    } catch (err: any) {
-      console.error('Error deleting client:', err);
-      alert(err?.response?.data?.error || 'Failed to delete client');
-    }
-  };
+  try {
+    await deleteClientApi(clientId);
+    setClients((prev) => prev.filter((c) => c.id !== clientId));
+  } catch (err: any) {
+    console.error('Error deleting client:', err);
+    alert(err?.response?.data?.error || 'Failed to delete client');
+  }
+};
+
 
   if (loading) {
     return (

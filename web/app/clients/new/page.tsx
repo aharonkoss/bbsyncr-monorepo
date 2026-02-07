@@ -3,9 +3,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { api, tokenManager } from '@/lib/api';
 import { CreateClientRequest } from '@my-real-estate-app/shared';
 import ClientTermsModal from './ClientTermsModal'; // Add this import
+import { createClient, fetchCurrentUser } from '@/lib/api';
 
 const PROPERTY_OPTIONS = ['Residential', 'Land', 'Commercial', 'Other'];
 const AGREEMENT_OPTIONS = ['Buyer Broker Agreement', 'Exclusive Buyer Broker Agreement'];
@@ -39,14 +39,36 @@ export default function NewClientPage() {
   const [showClientTermsModal, setShowClientTermsModal] = useState(false);
   const [agreedToClientTerms, setAgreedToClientTerms] = useState(false);
 
-  // Check authentication
+   // Check authentication
   useEffect(() => {
-    const token = tokenManager.getToken();
-    if (!token) {
-      router.push('/login');
-    }
-  }, [router]);
+  let cancelled = false;
 
+  const checkAuth = async () => {
+    try {
+      await fetchCurrentUser(); // verifies cookie is valid
+      if (!cancelled) {
+        setLoading(false);
+      }
+    } catch (error) {
+      if (!cancelled) {
+        router.push('/login');
+      }
+    }
+  };
+
+  checkAuth();
+  return () => {
+    cancelled = true;
+  };
+}, [router]);
+
+if (loading) {
+  return <div>Loading...</div>;
+}
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -241,7 +263,7 @@ if (formData.documentType === 'Exclusive Buyer Broker Agreement') {
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
-        documentType: formData.documentType,
+        document_type: formData.documentType,
         signature_image: signatureImage,
         property_description: formData.property_description,
         property_description_other: formData.property_description_other,
@@ -253,21 +275,22 @@ if (formData.documentType === 'Exclusive Buyer Broker Agreement') {
         days_of_execution: formData.days_of_execution,
       };
 
-      const result = await api.createClient(clientData);
+      const result = await createClient(clientData);
       console.log('Client created:', result);
       alert('Client added successfully!');
       router.push('/clients');
     } catch (err: any) {
       console.error('Error creating client:', err);
-      const errorMessage = err?.response?.data?.error ||
+      const errorMessage =
+        err?.response?.data?.error ||
         err?.response?.data?.message ||
         'Failed to create client';
       setError(errorMessage);
+
       if (err?.response?.status === 401) {
-        tokenManager.clearAll();
-        router.push('/login');
+        router.push('/login'); // just redirect; cookie already expired
       }
-    } finally {
+  } finally {
       setLoading(false);
     }
   };

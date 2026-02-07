@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SignatureCanvas from 'react-signature-canvas';
-import { api, tokenManager } from '@/lib/api';
+import { fetchUserProfile, updateUserProfile, cancelSubscription } from '@/lib/api';
 
 type UserProfile = {
   id: string;
@@ -57,61 +57,48 @@ export default function ProfilePage() {
 
   // --- Load current user profile (from your auth storage or API) ---
   useEffect(() => {
-    const token = tokenManager.getToken();
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+    let cancelled = false;
 
-    const fetchProfile = async () => {
+    const loadProfile = async () => {
       try {
         setLoading(true);
         setError('');
 
-        // Assuming you have an endpoint to get the current user profile.
-        // If not, you can decode token and call your own /api/auth/me.
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const profile = await fetchUserProfile(); // uses cookies
 
-        if (!res.ok) {
-          if (res.status === 401) {
-            tokenManager.clearAll();
-            router.push('/login');
-            return;
-          }
-          throw new Error('Failed to load profile');
+        if (!cancelled) {
+          const u = profile;
+          setUser(u);
+          setRealtorName(u.realtor_name || u.realtorname || '');
+          setRealtorCompany(u.realtor_company || '');
+          setRealtorPhone(u.realtor_phone || '');
+          setEmail(u.email || '');
+          setAddress(u.address || '');
+          setCity(u.city || '');
+          setStateVal(u.state || '');
+          setZip(u.zip || '');
+          setBuyerBrokerUrl(u.buyer_broker_agreement_url);
+          setExclusiveEmploymentUrl(u.exclusive_employment_agreement_url);
+          setSubscriptionStatus(u.subscription_status || null);
+          setLoading(false);
         }
-
-        const data = (await res.json()) as { user: UserProfile };
-        const u = data.user;
-        setUser(u);
-
-        setRealtorName(u.realtor_name || '');
-        setRealtorCompany(u.realtor_company || '');
-        setRealtorPhone(u.realtor_phone || '');
-        setEmail(u.email || '');
-
-        setAddress(u.address || '');
-        setCity(u.city || '');
-        setStateVal(u.state || '');
-        setZip(u.zip || '');
-
-        setBuyerBrokerUrl(u.buyer_broker_agreement_url);
-        setExclusiveEmploymentUrl(u.exclusive_employment_agreement_url);
-        setSubscriptionStatus(u.subscription_status || null);
-
-        setLoading(false);
       } catch (err: any) {
         console.error('Error loading profile:', err);
-        setError(err.message || 'Failed to load profile');
-        setLoading(false);
+        if (!cancelled) {
+          if (err?.response?.status === 401) {
+            router.push('/login');
+          } else {
+            setError(err.message || 'Failed to load profile');
+            setLoading(false);
+          }
+        }
       }
     };
 
-    fetchProfile();
+    loadProfile();
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   // --- Signature helpers ---
@@ -159,155 +146,107 @@ export default function ProfilePage() {
     }
   };
 
-  // --- Save profile ---
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
+const handleSaveProfile = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
+  setSuccess('');
+  if (!user) return;
 
-    if (!user) return;
+  // validation (keep existing checks)
+  if (!realtorName.trim()) {
+    setError('Realtor name is required');
+    return;
+  }
 
-    // simple validation
-    if (!realtorName.trim()) {
-      setError('Realtor name is required');
+  if (!email.trim()) {
+    setError('Email is required');
+    return;
+  }
+
+  if (newPassword) {
+    if (newPassword.length < 10) {
+      setError('New password must be at least 10 characters long');
       return;
     }
-    if (!email.trim()) {
-      setError('Email is required');
+    if (newPassword !== confirmPassword) {
+      setError('New password and confirmation do not match');
       return;
     }
+  }
+
+  try {
+    setSaving(true);
+
+    const formData = new FormData();
+    formData.append('realtorName', realtorName);
+    formData.append('realtorCompany', realtorCompany);
+    formData.append('realtorPhone', realtorPhone);
+    formData.append('email', email);
+    formData.append('address', address);
+    formData.append('city', city);
+    formData.append('state', stateVal);
+    formData.append('zip', zip);
 
     if (newPassword) {
-      if (newPassword.length < 10) {
-        setError('New password must be at least 10 characters long');
-        return;
-      }
-      if (newPassword !== confirmPassword) {
-        setError('New password and confirmation do not match');
-        return;
-      }
+      formData.append('password', newPassword);
     }
 
-    try {
-      setSaving(true);
-
-      const token = tokenManager.getToken();
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('realtorName', realtorName);
-      formData.append('realtorCompany', realtorCompany);
-      formData.append('realtorPhone', realtorPhone);
-      formData.append('email', email);
-      formData.append('address', address);
-      formData.append('city', city);
-      formData.append('state', stateVal);
-      formData.append('zip', zip);
-
-      if (newPassword) {
-        formData.append('password', newPassword);
-      }
-
-      const sigDataUrl = getSignatureDataUrl();
-      if (sigDataUrl) {
-        formData.append('agent_signature', sigDataUrl);
-      }
-
-      if (buyerBrokerFile) {
-        formData.append('buyer_broker_agreement', buyerBrokerFile);
-      }
-
-      if (exclusiveEmploymentFile) {
-        formData.append('exclusive_employment_agreement', exclusiveEmploymentFile);
-      }
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to update profile');
-      }
-
-      setSuccess('Profile updated successfully');
-      setUser(data.user);
-      setBuyerBrokerUrl(data.user.buyer_broker_agreement_url);
-      setExclusiveEmploymentUrl(data.user.exclusive_employment_agreement_url);
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (err: any) {
-      console.error('Profile save error:', err);
-      setError(err.message || 'Failed to update profile');
-    } finally {
-      setSaving(false);
+    const sigDataUrl = getSignatureDataUrl();
+    if (sigDataUrl) {
+      formData.append('agent_signature', sigDataUrl);
     }
-  };
+
+    if (buyerBrokerFile) {
+      formData.append('buyer_broker_agreement', buyerBrokerFile);
+    }
+
+    if (exclusiveEmploymentFile) {
+      formData.append('exclusive_employment_agreement', exclusiveEmploymentFile);
+    }
+
+    const data = await updateUserProfile(formData); // uses cookies
+
+    setSuccess('Profile updated successfully');
+    setUser(data.user);
+    setBuyerBrokerUrl(data.user.buyer_broker_agreement_url);
+    setExclusiveEmploymentUrl(data.user.exclusive_employment_agreement_url);
+    setNewPassword('');
+    setConfirmPassword('');
+  } catch (err: any) {
+    console.error('Profile save error:', err);
+    setError(err?.response?.data?.error || err.message || 'Failed to update profile');
+  } finally {
+    setSaving(false);
+  }
+};
 
   // --- Cancel subscription ---
-  const handleCancelSubscription = async () => {
-    setError('');
-    setSuccess('');
-
-    if (!confirm('Are you sure you want to cancel your subscription?')) {
-      return;
-    }
-
-    try {
-      setCanceling(true);
-      const token = tokenManager.getToken();
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/payments/cancel-subscription`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to cancel subscription');
-      }
-
-      setSubscriptionStatus('cancelled');
-      setSuccess('Subscription cancelled successfully');
-    } catch (err: any) {
-      console.error('Cancel subscription error:', err);
-      setError(err.message || 'Failed to cancel subscription');
-    } finally {
-      setCanceling(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
-        <p className="text-gray-600 text-lg">Loading profile...</p>
-      </div>
-    );
+ const handleCancelSubscription = async () => {
+  setError('');
+  setSuccess('');
+  if (!confirm('Are you sure you want to cancel your subscription? You will be logged out.')) {
+    return;
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
-        <p className="text-gray-600 text-lg">Unable to load profile.</p>
-      </div>
-    );
+  try {
+    setCanceling(true);
+    const result = await cancelSubscription(); // uses cookies
+    
+    setSubscriptionStatus('cancelled');
+    setSuccess(result.message || 'Subscription cancelled successfully. Redirecting to login...');
+    
+    // ✅ Redirect to login after 2 seconds
+    setTimeout(() => {
+      router.push('/login');
+    }, 2000);
+  } catch (err: any) {
+    console.error('Cancel subscription error:', err);
+    setError(err?.response?.data?.error || err.message || 'Failed to cancel subscription');
+  } finally {
+    setCanceling(false);
   }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white py-12 px-4 sm:px-6 lg:px-8">
