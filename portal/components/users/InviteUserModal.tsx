@@ -43,7 +43,7 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
   const fetchCompanies = async () => {
     setLoadingCompanies(true);
     try {
-      const response = await apiClient.get('companies');
+      const response = await apiClient.get('/api/portal/companies');
       const responseData = response.data || response;
       if (responseData?.companies && Array.isArray(responseData.companies)) {
         setCompanies(responseData.companies);
@@ -70,7 +70,7 @@ export default function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUs
 
     setLoading(true);
     try {
-      await apiClient.post('users/invite', {
+      await apiClient.post('/api/portal/users/invite', {
         email: formData.email,
         name: formData.name,
         role: formData.role,

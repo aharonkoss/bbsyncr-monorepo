@@ -27,7 +27,7 @@ export default function AnalyticsPage() {
       if (analytics !== null) {
          setRefreshing(true); // Only show overlay if data already exists
       }
-      const { data } = await apiClient.get('/analytics/signings', {
+      const { data } = await apiClient.get('/api/portal/analytics/signings', {
         params: {
           start_date: startDate,
           end_date: endDate,

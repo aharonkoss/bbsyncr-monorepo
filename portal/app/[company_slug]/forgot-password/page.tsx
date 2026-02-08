@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -10,9 +11,13 @@ interface CompanyBranding {
   logo_url: string | null;
   primary_color: string;
   secondary_color: string;
+  subdomain: string;
 }
 
 export default function ForgotPasswordPage() {
+  const params = useParams();
+  const companySlug = params.company_slug as string;
+  
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -25,31 +30,15 @@ export default function ForgotPasswordPage() {
 
   const fetchBranding = async () => {
     try {
-      const hostname = window.location.hostname;
-      let subdomain = null;
-
-      // Extract subdomain
-      if (hostname.includes('localhost')) {
-        const parts = hostname.split('.');
-        if (parts.length >= 2 && parts[0] !== 'localhost') {
-          subdomain = parts[0];
-        }
-      } else {
-        const parts = hostname.split('.');
-        if (parts.length >= 3) {
-          subdomain = parts[0];
-        }
-      }
-
-      console.log('🎨 Forgot password page - Fetching branding for subdomain:', subdomain);
-
-      if (!subdomain) {
+      console.log('🎨 Forgot password page - Fetching branding for:', companySlug);
+      
+      if (!companySlug) {
         setBrandingLoading(false);
         return;
       }
 
-      // Fetch company branding
-      const { data } = await apiClient.get(`/companies/subdomain/${subdomain}`);
+      // Fetch company branding using company_slug from URL
+      const { data } = await apiClient.get(`/companies/subdomain/${companySlug}`);
       console.log('✅ Branding loaded:', data.company);
       setBranding(data.company);
     } catch (error) {
@@ -64,7 +53,10 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      await apiClient.post('/auth/forgot-password', { email });
+      await apiClient.post('/auth/forgot-password', { 
+        email,
+        company_slug: companySlug 
+      });
       setSubmitted(true);
       toast.success('Password reset link sent to your email!');
     } catch (error: any) {
@@ -74,45 +66,62 @@ export default function ForgotPasswordPage() {
     }
   };
 
+  // Success message after submission
   if (submitted) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md space-y-8">
-          {/* Logo */}
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          {/* Logo - DOUBLED SIZE: h-16 to h-32 */}
           {brandingLoading ? (
             <div className="flex justify-center">
-              <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+              <div className="h-32 w-32 bg-gray-200 animate-pulse rounded-full"></div>
             </div>
           ) : branding?.logo_url ? (
-            <img
-              className="mx-auto h-12 w-auto"
-              src={branding.logo_url}
-              alt={branding.company_name}
-            />
+            <div className="flex justify-center">
+              <img
+                src={branding.logo_url}
+                alt={branding.company_name}
+                className="h-32 w-auto"
+              />
+            </div>
           ) : (
-            <img
-              className="mx-auto h-12 w-auto"
-              src="https://app.bbsynr.com/_next/image?url=%2Flogo.png&w=1200&q=75"
-              alt="BBsynr Portal"
-            />
+            <div className="flex justify-center">
+              <div className="h-32 w-32 bg-blue-500 rounded-full flex items-center justify-center text-white text-4xl font-bold">
+                {branding?.company_name?.charAt(0) || 'B'}
+              </div>
+            </div>
           )}
 
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900">Check Your Email</h2>
-            <p className="mt-4 text-gray-600">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Check Your Email</h2>
+            <p className="text-gray-600 mb-2">
               We've sent a password reset link to
             </p>
-            <p className="mt-2 font-semibold text-gray-900">{email}</p>
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="font-semibold text-gray-900 mb-4">{email}</p>
+            <p className="text-sm text-gray-500">
               Check your inbox and click the link to reset your password.
             </p>
           </div>
 
+          {/* Back to login with company_slug */}
           <div className="text-center">
             <Link
-              href="/login"
-              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+              href={`/${companySlug}/login`}
+              className="text-sm text-gray-600 hover:text-gray-900 inline-flex items-center"
             >
+              <svg
+                className="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
               Back to login
             </Link>
           </div>
@@ -121,41 +130,42 @@ export default function ForgotPasswordPage() {
     );
   }
 
+  // Main forgot password form
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        {/* Logo */}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        {/* Logo - DOUBLED SIZE: h-16 to h-32 */}
         {brandingLoading ? (
           <div className="flex justify-center">
-            <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+            <div className="h-32 w-32 bg-gray-200 animate-pulse rounded-full"></div>
           </div>
         ) : branding?.logo_url ? (
-          <img
-            className="mx-auto h-12 w-auto"
-            src={branding.logo_url}
-            alt={branding.company_name}
-          />
+          <div className="flex justify-center">
+            <img
+              src={branding.logo_url}
+              alt={branding.company_name}
+              className="h-32 w-auto"
+            />
+          </div>
         ) : (
-          <img
-            className="mx-auto h-12 w-auto"
-            src="https://app.bbsynr.com/_next/image?url=%2Flogo.png&w=1200&q=75"
-            alt="BBsynr Portal"
-          />
+          <div className="flex justify-center">
+            <div className="h-32 w-32 bg-blue-500 rounded-full flex items-center justify-center text-white text-4xl font-bold">
+              {branding?.company_name?.charAt(0) || 'B'}
+            </div>
+          </div>
         )}
 
         {/* Title */}
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            Forgot Your Password?
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900">Forgot Your Password?</h2>
+          <p className="mt-2 text-sm text-gray-600">
             Enter your email and we'll send you a reset link
           </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email address
             </label>
             <input
@@ -167,30 +177,42 @@ export default function ForgotPasswordPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="mt-1 block w-full rounded-md border-0 py-3 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
-              style={{
-                '--tw-ring-color': branding?.primary_color || '#3b82f6'
-              } as React.CSSProperties}
+              placeholder="you@example.com"
             />
           </div>
 
-          {/* Submit button */}
+          {/* Submit button - Primary color background with black text */}
           <button
             type="submit"
             disabled={loading}
-            className="group relative flex w-full justify-center rounded-md px-3 py-3 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
             style={{
-               '--tw-ring-color': branding?.primary_color || '#3b82f6'
-            } as React.CSSProperties}
+              backgroundColor: branding?.primary_color || '#3B82F6',
+              color: '#000000',
+            }}
           >
             {loading ? 'Sending...' : 'Send Reset Link'}
           </button>
 
-          {/* Back to login */}
+          {/* Back to login with company_slug */}
           <div className="text-center">
             <Link
-              href="/login"
-              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+              href={`/${companySlug}/login`}
+              className="text-sm text-gray-600 hover:text-gray-900 inline-flex items-center"
             >
+              <svg
+                className="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
               Back to login
             </Link>
           </div>

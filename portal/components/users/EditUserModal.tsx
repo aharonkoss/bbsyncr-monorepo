@@ -37,7 +37,7 @@ export default function EditUserModal({ isOpen, onClose, onSuccess, user }: Edit
     setLoading(true);
 
     try {
-      await apiClient.put(`users/${user.id}`, formData);
+      await apiClient.put(`/api/portal/users/${user.id}`, formData);
       toast.success('User updated successfully!');
       onSuccess();
       onClose();

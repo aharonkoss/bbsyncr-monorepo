@@ -15,8 +15,9 @@ export default function DashboardPage() {
   
   const { company } = useCompany();
   
-  const [isHydrated, setIsHydrated] = useState(false);
+  // ✅ REMOVED isHydrated - not needed with cookies
   const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   
   const [stats, setStats] = useState({
     total_agents: 0,
@@ -26,32 +27,27 @@ export default function DashboardPage() {
   const [recentAgents, setRecentAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Hydrate Zustand store
-  useEffect(() => {
-    useAuthStore.persist.rehydrate();
-    setIsHydrated(true);
-  }, []);
+  // ✅ REMOVED HYDRATION EFFECT - No longer needed with cookies!
 
   // Check authentication and fetch data
   useEffect(() => {
-    if (!isHydrated) return;
-
-    if (!user) {
-      console.log('❌ No user in Zustand store, redirecting to login');
+    // ✅ Simple check - no hydration needed
+    if (!isAuthenticated || !user) {
+      console.log('❌ Not authenticated, redirecting to login');
       router.push(`/${companySlug}/login`);
       return;
     }
 
     console.log('✅ User loaded:', user);
     fetchDashboardData();
-  }, [isHydrated, user, router, companySlug]);
+  }, [isAuthenticated, user, router, companySlug]);
 
   const fetchDashboardData = async () => {
     try {
       console.log('🔄 Fetching dashboard data...');
       
       // Fetch agents list
-      const { data } = await apiClient.get('/agents');
+      const { data } = await apiClient.get('/api/portal/agents');
       console.log('✅ Raw API response:', data);
 
       const agents = data?.agents || data || [];
@@ -98,8 +94,8 @@ export default function DashboardPage() {
     }
   };
 
-  // Show loading while hydrating or fetching data
-  if (!isHydrated || loading) {
+  // Show loading while fetching data
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -110,7 +106,7 @@ export default function DashboardPage() {
     );
   }
 
-  // If no user after hydration, return null (redirect will happen)
+  // If no user, return null (redirect will happen)
   if (!user) {
     return null;
   }

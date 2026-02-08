@@ -26,7 +26,7 @@ export default function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentMo
     setLoading(true);
 
     try {
-      const response = await apiClient.post('/agents', formData);
+      const response = await apiClient.post('/api/portal/agents', formData);
       const data = response.data || response; // Handle both wrapped and unwrapped responses
       
       if (data.status === 'joined') {

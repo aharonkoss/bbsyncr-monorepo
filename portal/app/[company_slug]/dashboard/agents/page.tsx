@@ -22,7 +22,7 @@ export default function AgentsPage() {
 
   const fetchAgents = async () => {
     try {
-      const { data } = await apiClient.get('/agents');
+      const { data } = await apiClient.get('/api/portal/agents');
       setAgents(data.agents);
     } catch (error) {
       toast.error('Failed to fetch agents');
@@ -34,7 +34,7 @@ export default function AgentsPage() {
   const handleSendReminder = async (agentId: string) => {
     try {
       setSendingReminder(agentId); // ✅ Set loading state for this specific agent
-      await apiClient.post(`/agents/${agentId}/send-invitation`);
+      await apiClient.post(`api/portal/agents/${agentId}/send-invitation`);
       toast.success('Invitation reminder sent!');
       fetchAgents();
     } catch (error: any) {

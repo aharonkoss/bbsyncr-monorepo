@@ -1,6 +1,27 @@
 import { ApiClient, createHttpClient } from '@my-real-estate-app/shared';
 
-const httpClient = createHttpClient();
+// ✅ ADD THIS - In-memory token storage
+let authToken: string | null = null;
+
+// ✅ ADD THIS - Function to set token after login
+export const setAuthToken = (token: string) => {
+  authToken = token;
+  console.log('🔑 Auth token stored');
+};
+
+// ✅ ADD THIS - Function to clear token on logout
+export const clearAuthToken = () => {
+  authToken = null;
+  console.log('🔑 Auth token cleared');
+};
+
+// ✅ ADD THIS - Function to get token
+const getToken = async (): Promise<string | null> => {
+  return authToken;
+};
+
+// ✅ CHANGE THIS LINE - Pass getToken to createHttpClient
+const httpClient = createHttpClient(getToken);
 
 export const api = new ApiClient(httpClient);
 
@@ -65,6 +86,7 @@ export const tokenManager = {
   clearAll() {},
 };
 export async function logout(): Promise<void> {
+  clearAuthToken(); // ✅ Clear token from memory
   await httpClient.post('/auth/logout');
 }
 export async function resendClientDocument(clientId: string) {

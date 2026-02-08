@@ -21,8 +21,9 @@ export default function TeamPage() {
   const params = useParams();
   const companySlug = params.company_slug as string;
   
-  const [isHydrated, setIsHydrated] = useState(false);
+  // ✅ Use authStore (no hydration needed with cookies)
   const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   
   const [loading, setLoading] = useState(true);
   const [teamMembers, setTeamMembers] = useState<User[]>([]);
@@ -33,16 +34,10 @@ export default function TeamPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  // Hydrate Zustand store first
-  useEffect(() => {
-    useAuthStore.persist.rehydrate();
-    setIsHydrated(true);
-  }, []);
+  // ✅ REMOVED HYDRATION - No longer needed with cookies
 
-  // Check authentication and authorization after hydration
+  // Check authentication and authorization
   useEffect(() => {
-    if (!isHydrated) return;
-
     if (!user) {
       router.push(`/${companySlug}/login`);
       return;
@@ -63,53 +58,54 @@ export default function TeamPage() {
     if (user.role === 'global_admin') {
       fetchCompanies();
     }
-  }, [isHydrated, user, router, companySlug]);
+  }, [user, router, companySlug]);
 
   // Fetch team members when company is selected
   useEffect(() => {
-    if (isHydrated && user && selectedCompanyId) {
+    if (user && selectedCompanyId) {
       fetchTeamMembers();
     }
-  }, [isHydrated, user, selectedCompanyId]);
+  }, [user, selectedCompanyId]);
 
   const fetchCompanies = async () => {
     try {
-      const { data } = await apiClient.get('/companies');
+      // ✅ Added /api/portal prefix
+      const { data } = await apiClient.get('/api/portal/companies');
       setCompanies(data.companies);
     } catch (error: any) {
       toast.error('Failed to fetch companies');
     }
   };
 
-const fetchTeamMembers = async () => {
-  if (!selectedCompanyId) return;
+  const fetchTeamMembers = async () => {
+    if (!selectedCompanyId) return;
 
-  try {
-    setLoading(true);
-    
-    // Use /users endpoint instead of /users/team
-    const { data } = await apiClient.get('/users', {
-      params: { company_id: selectedCompanyId }
-    });
-    
-    // Filter to only show admins and managers (not agents)
-    const teamOnly = (data.users || data || []).filter((u: User) => 
-      u.role === 'company_admin' || u.role === 'manager' || u.role === 'global_admin'
-    );
-    
-    setTeamMembers(teamOnly);
-  } catch (error: any) {
-    console.error('Failed to fetch team members:', error);
-    toast.error(error.response?.data?.error || 'Failed to fetch team members');
-  } finally {
-    setLoading(false);
-  }
-};
-
+    try {
+      setLoading(true);
+      
+      // ✅ Added /api/portal prefix - Use /users endpoint
+      const { data } = await apiClient.get('/api/portal/users', {
+        params: { company_id: selectedCompanyId }
+      });
+      
+      // Filter to only show admins and managers (not agents)
+      const teamOnly = (data.users || data || []).filter((u: User) => 
+        u.role === 'company_admin' || u.role === 'manager' || u.role === 'global_admin'
+      );
+      
+      setTeamMembers(teamOnly);
+    } catch (error: any) {
+      console.error('Failed to fetch team members:', error);
+      toast.error(error.response?.data?.error || 'Failed to fetch team members');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleToggleActive = async (userId: string, currentStatus: boolean) => {
     try {
-      await apiClient.patch(`/users/${userId}`, {
+      // ✅ Added /api/portal prefix
+      await apiClient.patch(`/api/portal/users/${userId}`, {
         is_active: !currentStatus,
       });
       toast.success(`User ${currentStatus ? 'deactivated' : 'activated'} successfully`);
@@ -123,7 +119,8 @@ const fetchTeamMembers = async () => {
     if (!confirm('Are you sure you want to delete this user?')) return;
 
     try {
-      await apiClient.delete(`/users/${userId}`);
+      // ✅ Added /api/portal prefix
+      await apiClient.delete(`/api/portal/users/${userId}`);
       toast.success('User deleted successfully');
       fetchTeamMembers();
     } catch (error: any) {
@@ -131,16 +128,9 @@ const fetchTeamMembers = async () => {
     }
   };
 
-  // Show loading while hydrating
-  if (!isHydrated) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
-  }
+  // ✅ REMOVED HYDRATION CHECK - Not needed anymore
 
-  // After hydration, if no user, redirect will happen
+  // After user loads, if no user, redirect will happen
   if (!user) {
     return null;
   }
@@ -176,7 +166,7 @@ const fetchTeamMembers = async () => {
         </div>
       </div>
 
-      {/* Company Selector for Global Admin */}
+      {/* ✅ Company Selector for Global Admin - KEPT INTACT */}
       {user?.role === 'global_admin' && (
         <div className="bg-white p-4 rounded-lg shadow">
           <label htmlFor="company-select" className="block text-sm font-medium text-gray-700 mb-2">

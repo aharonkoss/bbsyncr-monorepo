@@ -70,27 +70,29 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  e.preventDefault();
+  setError('');
+  setLoading(true);
 
-    try {
-      const response = await api.login({ email, password });
-      const { token, refreshToken, user } = response;
-
-      await tokenManager.saveToken(token);
-      await tokenManager.saveRefreshToken(refreshToken);
-      await tokenManager.saveUser(user);
-
-      console.log('User logged in:', user);
-      router.replace('/clients');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error?.response?.data?.error || 'An error occurred. Please try again.');
-    } finally {
-      setLoading(false);
+  try {
+    const response = await api.login({ email, password });
+    
+    // ✅ Store the token
+    if (response.token) {
+      const { setAuthToken } = await import('@/lib/api');
+      setAuthToken(response.token);
+      console.log('✅ Token stored after login');
     }
-  };
+
+    router.push('/clients');
+  } catch (err: any) {
+    console.error('Login error:', err);
+    setError(err.response?.data?.error || 'Invalid email or password');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <>

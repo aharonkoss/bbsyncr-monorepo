@@ -45,7 +45,7 @@ function AcceptInvitationForm() {
     setLoading(true);
 
     try {
-      const { data } = await apiClient.post('/auth/accept-invitation', {
+      const { data } = await apiClient.post('/api/portal/auth/accept-invitation', {
         token,
         name: name.trim(),
         title: title.trim() || null,
