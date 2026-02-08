@@ -35,7 +35,7 @@ export default function CompaniesPage() {
 
   const fetchCompanies = async () => {
     try {
-      const { data } = await apiClient.get('/companies');
+      const { data } = await apiClient.get('api/portal/companies');
       setCompanies(data.companies);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to fetch companies');

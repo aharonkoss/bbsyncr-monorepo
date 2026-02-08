@@ -24,33 +24,30 @@ export default function LoginPage() {
   setLoading(true);
 
   try {
-    // ✅ Call login
     await login(email.toLowerCase().trim(), password);
     
-    // ✅ IMPORTANT: Get user from store AFTER login completes
     const authState = useAuthStore.getState();
     const user = authState.user;
-    
+
     console.log('✅ Login successful');
-    console.log('👤 User from authStore:', user);
-    console.log('🏢 Company from user:', user?.company);
-    console.log('🔗 Subdomain:', user?.company?.subdomain);
-    
+    console.log('👤 User:', user);
+    console.log('🏢 Company slug from URL:', company_slug);
+
     toast.success('Login successful!');
 
-    // ✅ Check if user has company data
-    if (user?.company?.subdomain) {
-      console.log('🚀 Redirecting to:', `/${user.company.subdomain}/dashboard`);
+    // ✅ Check user role
+    if (user?.role === 'global_admin') {
+      // ✅ Global admin: redirect to dashboard of CURRENT company (from URL)
+      console.log(`🚀 Global admin redirecting to: /${company_slug}/dashboard`);
+      router.push(`/${company_slug}/dashboard`);
+    } else if (user?.company?.subdomain) {
+      // ✅ Regular user: redirect to their company dashboard
+      console.log(`🚀 Redirecting to: /${user.company.subdomain}/dashboard`);
       router.push(`/${user.company.subdomain}/dashboard`);
-    } else if (user?.role === 'global_admin') {
-      console.log('🚀 Redirecting global admin to admin dashboard');
-      router.push('/admin/dashboard');
     } else {
-      console.error('❌ No company found for user:', user);
-      console.error('❌ User structure:', JSON.stringify(user, null, 2));
-      toast.error('No company assigned to your account. Please contact support.');
+      console.error('❌ No company found for user');
+      toast.error('No company assigned. Please contact support.');
     }
-
   } catch (error: any) {
     console.error('❌ Login error:', error);
     const errorMessage = error.response?.data?.error || 'Invalid email or password';
