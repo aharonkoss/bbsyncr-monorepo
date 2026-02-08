@@ -1,24 +1,27 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 import { API_CONFIG } from '../config/env';
 
-// Create axios instance
+// Create axios instance with cookie support
 export const createHttpClient = (
   getToken?: () => Promise<string | null>
 ): AxiosInstance => {
   const client = axios.create({
     baseURL: API_CONFIG.baseUrl,
-    withCredentials: true,
-    timeout: 30000, // 30 seconds timeout
+    timeout: API_CONFIG.timeout,
     headers: {
       'Content-Type': 'application/json',
     },
+    withCredentials: true, // ✅ CRITICAL: Send cookies with every request
   });
 
- // Response interceptor - handle 401 errors
+  // ❌ NO request interceptor - we're using cookies, not Bearer tokens
+
+  // Response interceptor - handle 401 errors
   client.interceptors.response.use(
     (response) => response,
-    async (error: AxiosError) => {
+    (error: AxiosError) => {
       if (error.response?.status === 401) {
+        console.error('Unauthorized - redirecting to login');
         // Redirect to login on 401
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
@@ -28,19 +31,8 @@ export const createHttpClient = (
     }
   );
 
-  // Response interceptor - handle errors
-  client.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      if (error.response?.status === 401) {
-        // Handle unauthorized - clear token, redirect to login
-        console.error('Unauthorized - token may be expired');
-      }
-      return Promise.reject(error);
-    }
-  );
-
   return client;
 };
-// Create and export the default http client
-export const httpClient = createHttpClient(async () => null);
+
+// Export default instance
+export const httpClient = createHttpClient();
