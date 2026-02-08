@@ -19,7 +19,7 @@ export interface CurrentUser {
 }
 
 export async function fetchCurrentUser(): Promise<CurrentUser> {
-  const response = await httpClient.get('/api/auth/me');
+  const response = await httpClient.get('/auth/me');
   return response.data as CurrentUser;
 }
 
@@ -45,7 +45,7 @@ export interface Client {
 }
 
 export async function fetchClients(): Promise<Client[]> {
-  const response = await httpClient.get('/api/clients'); // hits routes/clients.js
+  const response = await httpClient.get('/clients'); // hits routes/clients.js
   // clientController.getClients returns { clients: [...] }
   return response.data.clients as Client[];
 }
@@ -65,11 +65,11 @@ export const tokenManager = {
   clearAll() {},
 };
 export async function logout(): Promise<void> {
-  await httpClient.post('/api/auth/logout');
+  await httpClient.post('/auth/logout');
 }
 export async function resendClientDocument(clientId: string) {
-  // GET /api/clients/:id/resend
-  const response = await httpClient.get(`/api/clients/${clientId}/resend`);
+  // GET /clients/:id/resend
+  const response = await httpClient.get(`/clients/${clientId}/resend`);
   return response.data;
 }
 
@@ -77,20 +77,20 @@ export async function updateClient(
   clientId: string,
   payload: any
 ) {
-  // PUT /api/clients/:clientId
-  const response = await httpClient.put(`/api/clients/${clientId}`, payload);
+  // PUT /clients/:clientId
+  const response = await httpClient.put(`/clients/${clientId}`, payload);
   // clientController.updateClient returns the updated client as data[0]
   return response.data;
 }
 export async function deleteClient(clientId: string) {
-  // DELETE /api/clients/:clientId
-  const response = await httpClient.delete(`/api/clients/${clientId}`);
+  // DELETE /clients/:clientId
+  const response = await httpClient.delete(`/clients/${clientId}`);
   return response.data;
 }
 
 export async function downloadClientPdf(clientId: string): Promise<string> {
-  // GET /api/clients/:id/pdf, returns a PDF blob
-  const response = await httpClient.get(`/api/clients/${clientId}/pdf`, {
+  // GET /clients/:id/pdf, returns a PDF blob
+  const response = await httpClient.get(`/clients/${clientId}/pdf`, {
     responseType: 'blob',
   });
 
@@ -99,7 +99,7 @@ export async function downloadClientPdf(clientId: string): Promise<string> {
   return url;
 }
 export async function createClient(payload: any) {
-  const response = await httpClient.post('/api/clients', payload);
+  const response = await httpClient.post('/clients', payload);
   return response.data;
 }
 // ========== Profile Helpers ==========
@@ -121,13 +121,13 @@ export interface UserProfile {
 }
 
 export async function fetchUserProfile(): Promise<UserProfile> {
-  const response = await httpClient.get('/api/auth/me');
+  const response = await httpClient.get('/auth/me');
   return response.data.user || response.data;
 }
 
 export async function updateUserProfile(formData: FormData) {
   // FormData requires special handling; httpClient should support it
-  const response = await httpClient.put('/api/auth/profile', formData, {
+  const response = await httpClient.put('/auth/profile', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -136,6 +136,6 @@ export async function updateUserProfile(formData: FormData) {
 }
 
 export async function cancelSubscription() {
-  const response = await httpClient.post('/api/payments/cancel-subscription');
+  const response = await httpClient.post('/payments/cancel-subscription');
   return response.data;
 }

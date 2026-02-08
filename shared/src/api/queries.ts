@@ -15,29 +15,29 @@ export class ApiClient {
   // ===== Auth Endpoints =====
 
   async login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await this.httpClient.post<AuthResponse>('/api/auth/login', data);
+    const response = await this.httpClient.post<AuthResponse>('/auth/login', data);
     return response.data;
   }
 
   async register(data: any): Promise<any> {
-    const response = await this.httpClient.post('/api/auth/register', data);
+    const response = await this.httpClient.post('/auth/register', data);
     return response.data;
   }
 
   async forgotPassword(data: ForgotPasswordRequest): Promise<{ message: string }> {
-    const response = await this.httpClient.post('/api/auth/forgot-password', data);
+    const response = await this.httpClient.post('/auth/forgot-password', data);
     return response.data;
   }
 
   async resetPassword(data: ResetPasswordRequest): Promise<{ message: string }> {
-    const response = await this.httpClient.post('/api/auth/reset-password', data);
+    const response = await this.httpClient.post('/auth/reset-password', data);
     return response.data;
   }
 
   // ===== Client Endpoints =====
 
   async getClients(): Promise<Client[]> {
-    const response = await this.httpClient.get<{ clients: Client[] }>('/api/clients');
+    const response = await this.httpClient.get<{ clients: Client[] }>('/clients');
     return response.data.clients;
   }
 
@@ -60,7 +60,7 @@ export class ApiClient {
       days_of_execution: data.days_of_execution,
     };
     
-    const response = await this.httpClient.post<Client>('/api/clients', payload);
+    const response = await this.httpClient.post<Client>('/clients', payload);
     return response.data;
   }
   // UPDATE client - NEW
@@ -81,21 +81,21 @@ export class ApiClient {
         days_of_execution: data.days_of_execution,
       };
       
-      const response = await this.httpClient.put<Client>(`/api/clients/${clientId}`, payload);
+      const response = await this.httpClient.put<Client>(`/clients/${clientId}`, payload);
       return response.data;
     }
 
     // DELETE client - NEW
     async deleteClient(clientId: string): Promise<{ message: string }> {
-      const response = await this.httpClient.delete<{ message: string }>(`/api/clients/${clientId}`);
+      const response = await this.httpClient.delete<{ message: string }>(`/clients/${clientId}`);
       return response.data;
     }
   async getClientPdf(clientId: string): Promise<Blob> {
     console.log(`Requesting PDF for client: ${clientId}`);
-    console.log(`Request URL: /api/clients/${clientId}/pdf`);
+    console.log(`Request URL: /clients/${clientId}/pdf`);
     
     try {
-      const response = await this.httpClient.get(`/api/clients/${clientId}/pdf`, {
+      const response = await this.httpClient.get(`/clients/${clientId}/pdf`, {
         responseType: 'blob',
       });
       
@@ -118,7 +118,7 @@ export class ApiClient {
   }
 
   async resendDocument(clientId: string): Promise<any> {
-    const response = await this.httpClient.get(`/api/clients/${clientId}/resend`);
+    const response = await this.httpClient.get(`/clients/${clientId}/resend`);
     return response.data;
   }
 
