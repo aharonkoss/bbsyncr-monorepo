@@ -5,6 +5,10 @@ import { API_CONFIG } from '../config/env';
 export const createHttpClient = (
   getToken?: () => Promise<string | null>
 ): AxiosInstance => {
+   // Log the API URL on client side
+  if (typeof window !== 'undefined') {
+    console.log('🌐 httpClient initialized with baseURL:', API_CONFIG.baseUrl);
+  }
   const client = axios.create({
     baseURL: API_CONFIG.baseUrl,
     timeout: API_CONFIG.timeout,
