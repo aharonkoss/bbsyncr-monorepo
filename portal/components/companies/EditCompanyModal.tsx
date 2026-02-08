@@ -72,13 +72,13 @@ export default function EditCompanyModal({
 
     try {
       // Update company details
-      await apiClient.put(`/companies/${company.id}`, formData);
+      await apiClient.put(`/api/portal/companies/${company.id}`, formData);
 
       // Upload logo if changed
       if (logoFile) {
         const logoFormData = new FormData();
         logoFormData.append('logo', logoFile);
-        await apiClient.post(`/companies/${company.id}/upload-logo`, logoFormData, {
+        await apiClient.post(`/api/portal/companies/${company.id}/upload-logo`, logoFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

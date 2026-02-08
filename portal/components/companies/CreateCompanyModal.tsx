@@ -65,7 +65,7 @@ export default function CreateCompanyModal({
 
     try {
       // Create company first
-      const { data: companyData } = await apiClient.post('/companies', formData);
+      const { data: companyData } = await apiClient.post('/api/portal/companies', formData);
       const companyId = companyData.company.id;
 
       // Upload logo if provided
@@ -73,7 +73,7 @@ export default function CreateCompanyModal({
         const logoFormData = new FormData();
         logoFormData.append('logo', logoFile);
         
-        await apiClient.post(`/companies/${companyId}/upload-logo`, logoFormData, {
+        await apiClient.post(`/api/portal/companies/${companyId}/upload-logo`, logoFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
