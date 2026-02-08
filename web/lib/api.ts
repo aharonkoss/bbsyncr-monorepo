@@ -1,10 +1,6 @@
 import { ApiClient, createHttpClient } from '@my-real-estate-app/shared';
 
-const getToken = async (): Promise<string | null> => {
-  return null; // cookie-based auth only
-};
-
-const httpClient = createHttpClient(getToken);
+const httpClient = createHttpClient();
 
 export const api = new ApiClient(httpClient);
 
