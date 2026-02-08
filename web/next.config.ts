@@ -8,6 +8,19 @@ const nextConfig: NextConfig = {
   webpack: (config) => {
     return config;
   },
+    async rewrites() {
+    // Only use rewrites in production (when deployed to Vercel)
+    if (process.env.NODE_ENV === 'production') {
+      return [
+        {
+          source: '/api/:path*',
+          destination: 'https://api.bbsynr.com/api/:path*',
+        },
+      ];
+    }
+    // In development, no rewrites needed (direct to localhost:3001)
+    return [];
+  },
 };
 
 export default nextConfig;
