@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
       }
 
       // Fetch company branding using company_slug from URL
-      const { data } = await apiClient.get(`/companies/subdomain/${companySlug}`);
+      const { data } = await apiClient.get(`/api/portal/companies/subdomain/${companySlug}`);
       console.log('✅ Branding loaded:', data.company);
       setBranding(data.company);
     } catch (error) {
@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      await apiClient.post('/auth/forgot-password', { 
+      await apiClient.post('/api/portal/auth/forgot-password', { 
         email,
         company_slug: companySlug 
       });
