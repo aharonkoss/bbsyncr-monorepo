@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, tokenManager } from '@/lib/api';
+import { api } from '@/lib/api';
 
 // Cookie Consent Component
 function CookieConsent() {
