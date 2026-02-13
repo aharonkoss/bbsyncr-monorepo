@@ -2,6 +2,7 @@
 
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
+///terms of service modal for company registration process
 interface TermsModalProps {
   isOpen: boolean;
   onClose: () => void;

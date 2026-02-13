@@ -19,11 +19,11 @@ function CompanyRegisterContent() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Registration data
+  // Registration data....
   const [registration, setRegistration] = useState<any>(null);
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
 
-  // Form data
+  // Form data....
   const [formData, setFormData] = useState({
     realtor_name: '',
     email: '',
