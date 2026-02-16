@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { Menu, Transition } from '@headlessui/react';
+import { ChevronDownIcon, UserCircleIcon, Cog6ToothIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import { useCompany } from '@/contexts/CompanyContext';
 import { useAuthStore } from '@/lib/store/authStore';
 
@@ -133,23 +135,77 @@ export default function DashboardLayout({
               </div>
             </div>
 
-            {/* Right side - User info & Sign out */}
-            <div className="flex items-center space-x-4">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                <p className="text-xs text-gray-500">
-                  {user?.role === 'global_admin' && 'Global Admin'}
-                  {user?.role === 'company_admin' && 'Company Admin'}
-                  {user?.role === 'manager' && 'Manager'}
-                </p>
-              </div>
-              <button
-                onClick={handleSignOut}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white hover:opacity-90 transition-opacity"
-                style={{ backgroundColor: company?.primary_color || '#1a9aff' }}
-              >
-                Sign out
-              </button>
+            {/* Right side - User Dropdown Menu */}
+            <div className="flex items-center">
+              <Menu as="div" className="relative">
+                <Menu.Button className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors">
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {user?.role === 'global_admin' && 'Global Admin'}
+                      {user?.role === 'company_admin' && 'Company Admin'}
+                      {user?.role === 'manager' && 'Manager'}
+                    </p>
+                  </div>
+                  <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                </Menu.Button>
+
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    {/* User Info - Mobile Only */}
+                    <div className="px-4 py-3 sm:hidden">
+                      <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {user?.role === 'global_admin' && 'Global Admin'}
+                        {user?.role === 'company_admin' && 'Company Admin'}
+                        {user?.role === 'manager' && 'Manager'}
+                      </p>
+                    </div>
+
+                    {/* Profile Link */}
+                    <div className="py-1">
+                      <Menu.Item>
+                        {({ active }) => (
+                          <Link
+                            href={`/${company?.subdomain}/profile`}
+                            className={`${
+                              active ? 'bg-gray-100' : ''
+                            } flex items-center px-4 py-2 text-sm text-gray-700`}
+                          >
+                            <UserCircleIcon className="mr-3 h-5 w-5 text-gray-400" />
+                            Profile Settings
+                          </Link>
+                        )}
+                      </Menu.Item>
+                    </div>
+
+                    {/* Sign Out */}
+                    <div className="py-1">
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            onClick={handleSignOut}
+                            className={`${
+                              active ? 'bg-gray-100' : ''
+                            } flex w-full items-center px-4 py-2 text-sm text-gray-700`}
+                          >
+                            <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5 text-gray-400" />
+                            Sign out
+                          </button>
+                        )}
+                      </Menu.Item>
+                    </div>
+                  </Menu.Items>
+                </Transition>
+              </Menu>
             </div>
           </div>
         </div>

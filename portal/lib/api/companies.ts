@@ -3,20 +3,34 @@ import { apiClient } from './client';
 export const companiesApi = {
   // Get all active companies
   getActiveCompanies: async () => {
-    const { data } = await apiClient.get('/api/portal/companies/active');
-    return data || [];
+     // ✅ Use fetch directly (no auth headers)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/portal/companies/active`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch companies');
+    }
+    
+    return response.json();
   },
 
   // Get company by subdomain (full name)
   getCompanyBySubdomain: async (subdomain: string) => {
-    const { data } = await apiClient.get(`/api/portal/companies/subdomain/${subdomain}`);
-    return data;
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/portal/companies/subdomain/${subdomain}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch companies');
+    }
+    
+    return response.json();
   },
 
   // Alias for backward compatibility
   getBySubdomain: async (subdomain: string) => {
-    const { data } = await apiClient.get(`/api/portal/companies/subdomain/${subdomain}`);
-    return data;
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/portal/companies/subdomain/${subdomain}`);
+     if (!response.ok) {
+      throw new Error('Failed to fetch companies');
+    }
+    
+    return response.json();
   },
 
   // Get all companies (admin only)
