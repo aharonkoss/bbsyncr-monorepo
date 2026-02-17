@@ -511,7 +511,7 @@ export default function AgentRegistrationPage() {
                         required
                         value={formData.name}
                         onChange={handleInputChange}
-                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all"
+                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all text-gray-900"
                         style={{ outlineColor: company.primary_color }}
                         placeholder="John Doe"
                     />
@@ -529,7 +529,7 @@ export default function AgentRegistrationPage() {
                         required
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all"
+                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all text-gray-900"
                         placeholder="john@example.com"
                         />
                     </div>
@@ -544,7 +544,7 @@ export default function AgentRegistrationPage() {
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all"
+                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all text-gray-900"
                         placeholder="(555) 123-4567"
                         />
                     </div>
@@ -560,7 +560,7 @@ export default function AgentRegistrationPage() {
                         name="company"
                         value={formData.company}
                         onChange={handleInputChange}
-                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all"
+                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all text-gray-900"
                         placeholder={company.name}
                     />
                     </div>
@@ -583,7 +583,7 @@ export default function AgentRegistrationPage() {
                         minLength={8}
                         value={formData.password}
                         onChange={handleInputChange}
-                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all"
+                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all text-gray-900"
                         placeholder="Minimum 8 characters"
                     />
                     </div>
@@ -599,7 +599,7 @@ export default function AgentRegistrationPage() {
                         required
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
-                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all"
+                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all text-gray-900"
                         placeholder="Re-enter password"
                     />
                     </div>
@@ -620,7 +620,7 @@ export default function AgentRegistrationPage() {
                         name="address"
                         value={formData.address}
                         onChange={handleInputChange}
-                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all"
+                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all text-gray-900"
                         placeholder="123 Main St"
                     />
                     </div>
@@ -636,7 +636,7 @@ export default function AgentRegistrationPage() {
                         name="city"
                         value={formData.city}
                         onChange={handleInputChange}
-                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all"
+                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all text-gray-900"
                         placeholder="Phoenix"
                         />
                     </div>
@@ -651,7 +651,7 @@ export default function AgentRegistrationPage() {
                         name="state"
                         value={formData.state}
                         onChange={handleInputChange}
-                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all"
+                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all text-gray-900"
                         placeholder="AZ"
                         maxLength={2}
                         />
@@ -667,7 +667,7 @@ export default function AgentRegistrationPage() {
                         name="zip"
                         value={formData.zip}
                         onChange={handleInputChange}
-                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all"
+                        className="block w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent transition-all text-gray-900"
                         placeholder="85001"
                         maxLength={5}
                         />
