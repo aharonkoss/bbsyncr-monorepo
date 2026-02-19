@@ -11,10 +11,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: 'Register for the BBSynr Portal',
-    description: `Join the BBSynr portal and start managing your real estate documents.`,
+    description: `Join BBSynr and start managing your real estate documents.`,
     openGraph: {
-      title: 'Register for the BBSynr Portal',
-      description: 'Join your team and manage real estate documents with BBSynr.',
+      title: 'Register for the BBSynr Mobile App',
+      description: 'Join your BBsynr team to sign your docs on your phone.',
       url: `${baseUrl}/${company_slug}/register`,
       siteName: 'BBSynr',
       images: [
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           url: `${baseUrl}/og-register.jpg`,  // absolute URL required
           width: 1200,
           height: 630,
-          alt: 'Register for the BBSynr Portal',
+          alt: 'Register for the BBSynr Mobile App.',
         },
       ],
       type: 'website',
