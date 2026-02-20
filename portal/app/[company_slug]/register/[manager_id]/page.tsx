@@ -6,7 +6,7 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { company_slug } = await params;
+  const { company_slug, manager_id } = await params;  // ← both destructured
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://portal.bbsynr.com';
 
   return {
@@ -15,11 +15,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: 'Register for the BBSynr Mobile App',
       description: 'Join your BBsynr team to sign your docs on your phone.',
-      url: `${baseUrl}/${company_slug}/register`,
+      url: `${baseUrl}/${company_slug}/register/${manager_id}`,  // ← now works
       siteName: 'BBSynr',
       images: [
         {
-          url: `${baseUrl}/og-register.jpg`,  // absolute URL required
+          url: `${baseUrl}/og-register.jpg`,
           width: 1200,
           height: 630,
           alt: 'Register for the BBSynr Mobile App.',
