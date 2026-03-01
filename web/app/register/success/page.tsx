@@ -5,88 +5,56 @@ import { useRouter, useSearchParams } from 'next/navigation';
 function SuccessPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [countdown, setCountdown] = useState(5);
+  const [statusMsg, setStatusMsg] = useState('⏳ Activating your account...');
+  const [attempts, setAttempts] = useState(0);
+  const MAX_ATTEMPTS = 12; // 12 × 2.5s = 30 seconds
 
   useEffect(() => {
-    console.log('✅ SUCCESS: Payment completed via Stripe');
-    console.log('🔍 Session ID:', searchParams.get('session_id'));
-    console.log('✅ Webhook will activate subscription automatically');
+    const sessionId = searchParams.get('session_id');
 
-    // Countdown timer
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [searchParams]);
-
-  // ✅ Separate useEffect for redirect - triggered when countdown reaches 0
-  useEffect(() => {
-    if (countdown === 0) {
-      console.log('🔄 Redirecting to login page');
-      router.push('/login');
+    if (!sessionId) {
+      setStatusMsg('⚠️ Missing session ID. Please contact support.');
+      return;
     }
-  }, [countdown, router]);
+
+    if (attempts >= MAX_ATTEMPTS) {
+      setStatusMsg(
+        '⚠️ Activation is taking longer than expected. Please try logging in — your account may already be active.'
+      );
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          // No credentials needed — this endpoint is public
+          `${process.env.NEXT_PUBLIC_API_URL}/api/payments/verify-session?session_id=${sessionId}`
+        );
+        const data = await res.json();
+
+        if (data.status === 'active') {
+          setStatusMsg('✅ Account activated! Redirecting to login...');
+          setTimeout(() => router.push('/login'), 1500);
+        } else {
+          setAttempts((prev) => prev + 1);
+        }
+      } catch (err) {
+        console.error('Poll error:', err);
+        setAttempts((prev) => prev + 1);
+      }
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, [attempts, searchParams, router]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Payment Successful! 🎉
-        </h2>
-        <div className="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <div className="text-center">
-            <div className="mb-4">
-              <svg
-                className="mx-auto h-12 w-12 text-green-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Your subscription has been created successfully.
-            </h3>
-
-            {/* Activation Info */}
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-md p-4">
-              <p className="text-sm text-blue-800 mb-2">
-                🔄 Your account is being activated.
-              </p>
-              <p className="text-sm text-blue-800 mb-2">
-                Please log in to access your dashboard.
-              </p>
-            </div>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Redirecting to login in <strong>{countdown}</strong> seconds...
-              </p>
-            </div>
-
-            <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-md p-3">
-              <p className="text-xs text-yellow-800">
-                ⚡ Your account will be activated within a few seconds.
-              </p>
-              <p className="text-xs text-yellow-800 mt-1">
-                If you have any issues, please contact support.
-              </p>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-white px-4">
+      <div className="bg-white rounded-2xl shadow-xl p-10 max-w-md w-full text-center space-y-4">
+        <h1 className="text-2xl font-bold text-gray-900">Payment Successful!</h1>
+        <p className="text-gray-600">{statusMsg}</p>
+        {attempts > 0 && attempts < 12 && (
+          <p className="text-sm text-gray-400">Checking... ({attempts}/12)</p>
+        )}
       </div>
     </div>
   );
@@ -94,7 +62,7 @@ function SuccessPageContent() {
 
 export default function SuccessPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <SuccessPageContent />
     </Suspense>
   );

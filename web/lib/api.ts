@@ -1,32 +1,57 @@
 import { ApiClient, createHttpClient } from '@my-real-estate-app/shared';
 
-// ✅ ADD THIS - In-memory token storage
+// ✅ In-memory token storage
 let authToken: string | null = null;
 
-// ✅ ADD THIS - Function to set token after login
 export const setAuthToken = (token: string) => {
   authToken = token;
   console.log('🔑 Auth token stored');
 };
 
-// ✅ ADD THIS - Function to clear token on logout
 export const clearAuthToken = () => {
   authToken = null;
   console.log('🔑 Auth token cleared');
 };
 
-// ✅ ADD THIS - Function to get token
 const getToken = async (): Promise<string | null> => {
   return authToken;
 };
 
-// ✅ CHANGE THIS LINE - Pass getToken to createHttpClient
+// ✅ Create http client and override baseURL to include /api
 const httpClient = createHttpClient(getToken);
+httpClient.defaults.baseURL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
-export const api = new ApiClient(httpClient);
+// ✅ Base ApiClient from shared package
+const apiClient = new ApiClient(httpClient);
+
+// ✅ Login request/response types
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  message: string;
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    realtor_name: string;
+    subscription_status: string;
+  };
+}
+
+// ✅ Extended api object — includes shared ApiClient methods + our custom login
+export const api = {
+  ...apiClient,
+
+  async login(data: LoginRequest): Promise<LoginResponse> {
+    const response = await httpClient.post<LoginResponse>('/auth/login', data);
+    return response.data;
+  },
+};
 
 // ---------- Current user ----------
-
 export interface CurrentUser {
   id: string;
   realtorname: string;
@@ -45,7 +70,6 @@ export async function fetchCurrentUser(): Promise<CurrentUser> {
 }
 
 // ---------- Clients ----------
-
 export interface Client {
   id: string;
   realtor_id: string;
@@ -62,73 +86,61 @@ export interface Client {
   buyer_initials: string;
   signature_image: string | null;
   created_at: string;
-  // add any other columns you use
 }
 
 export async function fetchClients(): Promise<Client[]> {
-  const response = await httpClient.get('/clients'); // hits routes/clients.js
-  // clientController.getClients returns { clients: [...] }
+  const response = await httpClient.get('/clients');
   return response.data.clients as Client[];
 }
 
 // ---------- Token manager (no-ops) ----------
-
 export const tokenManager = {
   saveToken(_token: string) {},
   saveRefreshToken(_refreshToken: string) {},
   saveUser(_user: any) {},
-  getToken() {
-    return null;
-  },
-  getUser() {
-    return null;
-  },
+  getToken() { return null; },
+  getUser() { return null; },
   clearAll() {},
 };
+
 export async function logout(): Promise<void> {
-  clearAuthToken(); // ✅ Clear token from memory
+  clearAuthToken();
   await httpClient.post('/auth/logout');
 }
+
 export async function resendClientDocument(clientId: string) {
-  // GET /clients/:id/resend
   const response = await httpClient.get(`/clients/${clientId}/resend`);
   return response.data;
 }
 
-export async function updateClient(
-  clientId: string,
-  payload: any
-) {
-  // PUT /clients/:clientId
+export async function updateClient(clientId: string, payload: any) {
   const response = await httpClient.put(`/clients/${clientId}`, payload);
-  // clientController.updateClient returns the updated client as data[0]
   return response.data;
 }
+
 export async function deleteClient(clientId: string) {
-  // DELETE /clients/:clientId
   const response = await httpClient.delete(`/clients/${clientId}`);
   return response.data;
 }
 
 export async function downloadClientPdf(clientId: string): Promise<string> {
-  // GET /clients/:id/pdf, returns a PDF blob
   const response = await httpClient.get(`/clients/${clientId}/pdf`, {
     responseType: 'blob',
   });
-
   const blob = new Blob([response.data], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  return url;
+  return URL.createObjectURL(blob);
 }
+
 export async function createClient(payload: any) {
   const response = await httpClient.post('/clients', payload);
   return response.data;
 }
+
 // ========== Profile Helpers ==========
 export interface UserProfile {
   id: string;
   realtor_name: string | null;
-  realtorname: string | null;  // for compatibility
+  realtorname: string | null;
   realtor_company: string | null;
   realtor_phone: string | null;
   email: string;
@@ -148,11 +160,8 @@ export async function fetchUserProfile(): Promise<UserProfile> {
 }
 
 export async function updateUserProfile(formData: FormData) {
-  // FormData requires special handling; httpClient should support it
   const response = await httpClient.put('/auth/profile', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+    headers: { 'Content-Type': 'multipart/form-data' },
   });
   return response.data;
 }
