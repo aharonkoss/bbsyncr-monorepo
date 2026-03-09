@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import toast, { Toaster } from 'react-hot-toast';
-import { EnvelopeIcon, LinkIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, LinkIcon, CheckCircleIcon, ArrowUpTrayIcon  } from '@heroicons/react/24/outline';
 import { agentsApi, Agent } from '@/lib/api/agents';
 import { profileApi } from '@/lib/api/profile';
-
+import BulkUploadWizardModal from '@/components/agents/BulkUploadWizardModal';
 export default function AgentsPage() {
   const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
@@ -31,11 +31,27 @@ export default function AgentsPage() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
   const [managerId, setManagerId] = useState<string>('');
+  const [isBulkWizardOpen, setIsBulkWizardOpen] = useState(false);
+  const [managerName, setManagerName] = useState('');
+  const [companyName, setCompanyName] = useState('');
 
   useEffect(() => {
     fetchManagerInfo();
     fetchAgents();
   }, []);
+// Pull manager/company info from localStorage (same pattern as your portal auth)
+useEffect(() => {
+  try {
+    const stored = localStorage.getItem('portalUser');
+    if (stored) {
+      const user = JSON.parse(stored);
+      setManagerName(user.name || 'Your Manager');
+      setCompanyName(user.company_name || 'the company');
+    }
+  } catch {
+    // silently fail — fallback values are fine
+  }
+}, [isBulkWizardOpen]);
 
   const fetchManagerInfo = async () => {
     try {
@@ -147,6 +163,14 @@ export default function AgentsPage() {
           
           {/* Action Buttons */}
           <div className="mt-4 sm:mt-0 flex items-center gap-2">
+            {/* Bulk Upload Button */}
+            <button
+              onClick={() => setIsBulkWizardOpen(true)}
+              className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+            >
+              <ArrowUpTrayIcon className="h-4 w-4" />
+              Upload Agents
+            </button>
             {/* Send Email Button */}
             <button
               onClick={() => setShowEmailModal(true)}
@@ -299,8 +323,18 @@ export default function AgentsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>        
       )}
+      <BulkUploadWizardModal
+          isOpen={isBulkWizardOpen}
+          onClose={() => setIsBulkWizardOpen(false)}
+          onSuccess={() => {
+            setIsBulkWizardOpen(false);
+            fetchAgents();
+          }}
+          managerName={managerName}        // ← ADD
+          companyName={companyName}        // ← ADD
+        />
     </>
   );
 }

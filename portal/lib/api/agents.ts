@@ -31,4 +31,26 @@ export const agentsApi = {
     const response = await apiClient.post('/api/portal/agents/send-registration-email', data);
     return response.data;
   },
+  /**
+   * Bulk add agents from CSV/XLSX upload
+   */
+  bulkAddAgents: async (
+    agents: { agent_name: string; agent_email: string }[],
+    customMessage: string,
+    file: File,
+    companyId?: string
+  ): Promise<BulkAddResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('agents', JSON.stringify(agents));
+    formData.append('customMessage', customMessage);
+    if (companyId) {
+      formData.append('company_id', companyId);
+    }
+
+    const response = await apiClient.post('/api/portal/agents/bulk', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
 };
