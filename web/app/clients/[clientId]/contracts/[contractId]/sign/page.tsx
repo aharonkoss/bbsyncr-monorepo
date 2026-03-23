@@ -272,7 +272,7 @@ export default function SignContractPage() {
             const signerIdx = key.substring(0, underscoreIndex);
             const fieldId = key.substring(underscoreIndex + 1);  // ✅ rest of string after first _
             const signer = signers[Number(signerIdx)];
-            const field = fields.find(f => f.id === fieldId);
+           // const field = fields.find(f => f.id === fieldId);
             return {
               contract_field_id: fieldId,
               signer_id: signer?.id,
