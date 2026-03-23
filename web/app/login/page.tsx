@@ -183,13 +183,6 @@ export default function LoginPage() {
             <div className="space-y-3">
               <button
                 type="button"
-                onClick={() => router.push('/register')}
-                className="w-full py-3 px-4 border border-[#0284C7] text-[#0284C7] font-semibold rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-[#0284C7] focus:ring-offset-2 transition-colors duration-200"
-              >
-                Create Account
-              </button>
-              <button
-                type="button"
                 onClick={() => router.push('/forgot-password')}
                 className="w-full py-3 px-4 text-[#0284C7] font-semibold hover:text-[#0369A1] focus:outline-none transition-colors duration-200"
               >

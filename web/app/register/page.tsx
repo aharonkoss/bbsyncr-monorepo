@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import SignatureCanvas from 'react-signature-canvas';
 import { loadStripe } from '@stripe/stripe-js';
@@ -9,6 +9,12 @@ import TermsModal from './TermsModal'; // Import the new modal component
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function RegisterPage() {
+    useEffect(() => {
+    router.replace('/login');
+  }, [router]);
+
+  return null;
+}
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
