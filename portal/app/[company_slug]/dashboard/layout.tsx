@@ -70,6 +70,12 @@ export default function DashboardLayout({
       icon: '👨‍💼',
       roles: ['global_admin', 'company_admin'],
     },
+    { 
+      name: 'Contracts', 
+      href: `/${company?.subdomain}/dashboard/contracts`, 
+      icon: '📄', 
+      roles: ['global_admin', 'company_admin'] 
+    },
     {
       name: 'Companies',
       href: `/${company?.subdomain}/dashboard/companies`,
