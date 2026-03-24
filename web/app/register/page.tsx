@@ -35,11 +35,17 @@ export default function RegisterPage() {
     // Remove the router.replace('/login') - this was redirecting everyone away from register!
   }, []);
 
-  const plans = [
+  const plans: {
+  id: string;
+  name: string;
+  price: string;
+  savings?: string;
+}[] = [
     {
       id: process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY as string,
       name: 'Monthly Plan',
       price: '$0.99/month',
+      savings: 'Try it out for just $0.99! Cancel anytime.',
     },
     {
       id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ANNUAL as string,
