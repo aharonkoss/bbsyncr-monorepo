@@ -51,15 +51,23 @@ function CompanyRegisterContent() {
   // Pricing
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly');
   
-const plans = {
-  monthly: {
+const plans : {
+  name: string;
+  price: string;
+  interval: string;
+  priceId: string;
+  description: string;
+  savings?: string;
+}[] = [
+  {
     name: 'Monthly Plan',
     price: '$0.99',
     interval: '/month',
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY as string,
-    description: 'Perfect for getting started'
+    description: 'Perfect for getting started',
+    savings: 'Save 17%'
   },
-  annual: {
+  {
     name: 'Annual Plan',
     price: '$9.99',
     interval: '/year',
