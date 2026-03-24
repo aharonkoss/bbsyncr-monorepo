@@ -1,4 +1,4 @@
-import { ApiClient, createHttpClient } from '@my-real-estate-app/shared';
+import { createHttpClient } from './httpClient';
 
 let authToken: string | null = null;
 
@@ -9,7 +9,6 @@ const getToken = async (): Promise<string | null> => authToken;
 const httpClient = createHttpClient(getToken);
 httpClient.defaults.baseURL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
-const apiClient = new ApiClient(httpClient);
 
 export interface LoginRequest { email: string; password: string; }
 export interface LoginResponse {
@@ -18,7 +17,6 @@ export interface LoginResponse {
 }
 
 export const api = {
-  ...apiClient,
   async login(data: LoginRequest): Promise<LoginResponse> {
     const response = await httpClient.post<LoginResponse>('/auth/login', data);
     return response.data;
